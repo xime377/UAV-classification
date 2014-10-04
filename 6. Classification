@@ -1,0 +1,109 @@
+###SET DIRECTORY
+setwd("C:/Users/Ximena/Documents/P7/Vito/UAVprocessing")
+
+
+###LOAD LIBRARIES
+library(raster)
+library(class)
+library(rgeos)
+library(rgdal)
+library(fields)
+library(sp)
+library(maptools)
+library(spgrass6)
+library(ProjectTemplate)
+library(reshape)
+library(caret)
+library(ggplot2)
+library(knitr)
+
+
+###LOAD EXISTING SCRIPTS
+load.project()
+
+#OR
+source("C:/Users/Ximena/Documents/P7/Vito/UAVprocessing/lib/classification.multiple.ho.R")
+
+
+####LOAD LAYER_STACK
+beginCluster()#to speed up the process
+layer_stack.path="C:/output/superpixel/Texture/ARAMACHAY/4000/model_ARAMACHAY_4000.tif"
+layer_stack=stack(layer_stack.path)
+names(layer_stack) <- c("compactness","DEM", "max_RGB2", "mean_entr_RGB2", #Raster and training sets must have the same variables names
+                        "mean_RGB2", "mean_sv_RGB2", "min_RGB3", "sd_entr_RGB1",
+                        "sd_RGB2", "sd_sv_RGB1")
+head(layer_stack)
+endCluster()
+
+#If you want to see all the layers one by one
+beginCluster()
+animate(layer_stack) 
+endCluster()
+#vizualize the first layers
+plot(layer_stack)
+
+
+###LOAD CLASS VECTOR
+Training.p=readOGR(dsn="C:/output/superpixel/Classification", layer="Landcover_total") #Raster and training sets must have the same variables names
+names(Training.p) <- c("coord.x", "coord.y", "ID", "Landcover", "compactness","DEM", "max_RGB2", "mean_entr_RGB2", #Raster and training sets must have the same variables names
+                       "mean_RGB2", "mean_sv_RGB2", "min_RGB3", "sd_entr_RGB1",
+                       "sd_RGB2", "sd_sv_RGB1", "x1","y1")
+head(Training.p)
+plot(Training.p)
+training.points.df=as.data.frame(Training.p)
+
+
+
+#### DEFINE THE TRAINING INDICES
+inTrain <- createDataPartition(training.points.df$Landcover, p = 2/3, list = F); 
+
+
+#### DEFINE THE FORMULA
+fmla <- Landcover ~ DEM+compactness+max_RGB2+mean_entr_RGB2+mean_RGB2+mean_sv_RGB2+
+min_RGB3+sd_entr_RGB1+sd_RGB2+sd_sv_RGB1
+
+
+
+####CLASSIFICATION
+results=classification.multiple.ho(data=training.points.df,     #dataset
+                                   train.ind=inTrain, #training indices
+                                   fmla,         #formula
+                                   k=8,          #number of folds for training
+                                   times=10,     #number of resamples for training
+                                   methods=c("knn", "rpart", "rf", "svmRadial"),  #Write which classification  is needed
+                                   tuneLength=10, #number of parameters to test
+                                   print.report=TRUE,
+                                   output.name="multiple_20130220-ARAMACHAY")
+
+
+#LOAD THE MODEL
+load("./reports/multiple_20130220-ARAMACHAY/results_ho.Rdata")
+model=results.ho[[2]]$rf
+
+
+#PREDICT FOR THE IMAGE USING RF MODEL
+beginCluster()#to speed up the process
+system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./predicted_output_rf_20130220-ARAMACHAY_obased.tif"))
+endCluster()
+
+#VISUALIZE VALIDATION POINTS
+training <- training.points.df[inTrain, ]
+coordinates(training) <- ~ coord.x+coord.y
+testing <- training.points.df[-inTrain, ]
+coordinates(testing) <- ~ coord.x+coord.y
+
+#Crossvalidation
+erf<-evaluate(training, testing, rf)# presence/absence
+
+
+#Load image
+image.path="C:/data/20130220-ARAMACHAY_1_lap1/20130220-ARAMACHAY_1_lap1.tif"
+image=stack(image.path)
+
+#Visualize info
+plotRGB(image)
+points(training, pch=20, col="blue", cex=0.8,bg="transparent", add=TRUE)
+points(testing, pch=20, col="red", cex=0.8,, bg="transparent", add=TRUE)
+legend("bottomright", legend=c("training p.", "validation p."), bty = "n",
+       pch=20, col=c("blue", "red"))
+
