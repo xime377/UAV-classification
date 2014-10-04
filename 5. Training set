@@ -1,0 +1,79 @@
+###LOAD LIBRARIES
+library(raster)
+library(rgeos)
+library(rgdal)
+library(sp)
+library(maptools)
+
+
+####LOAD LAYER_STACK
+layer_stack.path="C:/output/superpixel/Texture/ARAMACHAY/4000/model_ARAMACHAY_4000.tif"
+layer_stack=stack(layer_stack.path)
+names(layer_stack) <- c("compactness","DEM", "max_RGB2", "mean_entr_RGB2", #Raster and training sets must have the same variables names
+                        "mean_RGB2", "mean_sv_RGB2", "min_RGB3", "sd_entr_RGB1",
+                        "sd_RGB2", "sd_sv_RGB1")
+head(layer_stack)
+
+###LOAD SEGMENTS
+segments<-readOGR(dsn="C:/output/superpixel/Tiling/ARAMACHAY/4000", layer="segments_merged")
+
+
+###LOAD CLASS VECTOR
+classes<-readOGR(dsn="C:/output/superpixel/Classification/Manual/20130220-ARAMACHAY", layer="20130220-ARAMACHAY_1")
+proj4string(classes) <- CRS("+proj=longlat +ellps=WGS84") 
+classes.df<-as.data.frame(classes)
+
+####LOAD IMAGE
+image.path="C:/data/20130220-ARAMACHAY_1_lap1/20130220-ARAMACHAY_1_lap1.tif"
+image=stack(image.path)
+
+
+###VISUALIZE
+plotRGB(image)
+plot(segments, bg="transparent", add=T)
+
+
+###REDUCE INFO BY SAMPLING
+points<-spsample(segments, n=5000, type="stratified")#only extracts coordinates... 
+points.df<-as.data.frame(points)
+head(points)
+plot(points)
+
+
+###EXTRACT LAYER STACK VALUES
+Valuesd<- extract(layer_stack, points, df=T,method='simple', nl=31, fun=mean, sp=T)
+proj4string(Valuesd) <- CRS("+proj=longlat +ellps=WGS84") #Projects shape
+head(Valuesd)
+
+
+###EXTRACT INFO LANDCOVER
+class<-over(Valuesd, classes)
+class.df<-(as.data.frame(class))
+class.f<-cbind(points.df,class.df)
+Landcover<-cbind(class.f,Valuesd)
+Landcover<-na.omit(Landcover)#Removes NAs
+coordinates(Landcover) <- ~ x1+x2
+head(Landcover)
+
+
+###VISUALIZE
+plotRGB(image)
+plot(Landcover, bg="transparent", add=T)
+
+
+###EXPORT VECTOR AS .shp
+writePointsShape(Landcover,"C:/output/superpixel/Classification/Landcover_total")
+
+
+###EXPORT VECTOR AS A RASTER
+train<-rasterize(Landcover, layer_stack, filename="C:/output/superpixel/Classification/training",
+                 na.rm=T, overwrite=T)
+
+
+###EXPORT DATA AS .csv
+class.df<-as.data.frame(Landcover)
+plot(class.df)
+summary(class.df)
+write.table(class.df,file="C:/output/superpixel/Texture/4000/Landcover.csv",quote=T,sep=",", na = "NA",
+            dec = ".", row.names = T,col.names = T)
+
