@@ -1,0 +1,45 @@
+###LOAD LIBRARIES
+library(raster)
+library(maptools)
+library(rgeos)
+library(spgrass6)
+
+###LOAD EXISTING SCRIPTS
+source("C:/Users/Ximena/Documents/P7/Vito/Ruben/load.to.grass.R")
+source("C:/Users/Ximena/Documents/P7/Vito/Ruben/make.group.grass.R")
+source("C:/Users/Ximena/Documents/P7/Vito//Ruben/segmentation.grass.R")
+
+
+####LOAD IMAGE
+image.path="C:/data/20130220-ARAMACHAY_1_lap1tiles4000/20130220-ARAMACHAY_1_lap1_row2_col1.tif"
+image=stack(image.path)
+plotRGB(image)
+
+
+###INITIATE GRASS-R CONNECTION
+initGRASS("C:/GRASSGIS7.0.svn", tempdir(), override=TRUE) #path to GRASS
+
+
+#LOAD IMAGE AND VECTOR TO GRASS
+load.to.grass(image.path,"RGB")
+
+
+#SET REGION PARAMETER TO MATCH RGB
+execGRASS("g.region",parameters=list(rast="RGB.1"))
+execGRASS("g.region",flags="p") #check
+
+#MAKE GROUP (needed for segmentation)
+make.group.grass(c("RGB.1","RGB.2","RGB.3"),"group-1")
+#make.group.grass(c("RGB.red"),"group-2")
+
+##PERFORM SEGMENTATION
+segments=segmentation.grass(group="group-1",ext=NA,min.size=2,threshold=0.2)
+
+#the created object segments contains both a raster & vector representation of the segments
+plotRGB(image)
+plot(segments$segments_v,add=TRUE)
+
+
+##EXPORT SEGMENTS
+execGRASS("r.out.gdal", parameters=list(input="segments_r", output="C:/output/superpixel/Texture/4000/r2_c1/segments_r.tif", type="Float64"))
+execGRASS("v.out.ogr", parameters=list(input="segments_v", dsn="C:/output/superpixel/Texture/4000/r2_c1/segments_v.shp"))
