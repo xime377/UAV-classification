@@ -1,0 +1,76 @@
+###LOAD LIBRARIES
+library(raster)
+library(maptools)
+library(rgeos)
+library(spgrass6)
+
+
+###LOAD EXISTING SCRIPTS
+source("C:/Users/Ximena/Documents/P7/Vito/Ruben/load.to.grass.R")
+source("C:/Users/Ximena/Documents/P7/Vito/Ruben/make.group.grass.R")
+source("C:/Users/Ximena/Documents/P7/Vito/UAVprocessing/object.features.R")
+source("C:/Users/Ximena/Documents/P7/Vito//Ruben/segmentation.grass.R")
+source("C:/output/superpixel/Texture/polygonizeR.R")
+
+####LOAD IMAGE
+image.path="C:/data/20130220-ARAMACHAY_1_lap1tiles4000/20130220-ARAMACHAY_1_lap1_row2_col1.tif"
+image=stack(image.path)
+plotRGB(image)
+
+
+####LOAD SEGMENTS
+ogrListLayers("C:/output/superpixel/Tiling/4000/20130220-ARAMACHAY_1_lap1_r2c1_vector") #will show you available layers for the above dataset
+vector.path=("C:/output/superpixel/Tiling/4000/20130220-ARAMACHAY_1_lap1_r2c1_vector")
+segments_v=readOGR("C:/output/superpixel/Tiling/4000/20130220-ARAMACHAY_1_lap1_r2c1_vector", layer="Segmentation") #will load the shapefile to your dataset.
+plot(segments_v)
+
+segment_r.path=("C:/output/superpixel/Tiling/ARAMACHAY/4000/20130220-ARAMACHAY_1_lap1_r2_c1_gridlabel.img")
+segments_r=raster(segment_r.path)
+plot(segments_r)
+
+
+###INITIATE GRASS-R CONNECTION
+initGRASS("C:/GRASSGIS7.0.svn", tempdir(), override=TRUE) #path to GRASS
+
+
+#LOAD IMAGE AND VECTOR TO GRASS
+load.to.grass(image.path,"RGB")
+
+
+#SET REGION PARAMETER TO MATCH RGB
+execGRASS("g.region",parameters=list(rast="RGB.1"))
+execGRASS("g.region",flags="p") #check
+
+#MAKE GROUP
+make.group.grass(c("RGB.1","RGB.2","RGB.3"),"group-1")
+#make.group.grass(c("RGB.red"),"group-2")
+
+##CALCULATE OBJECT FEATURES                     
+features=object.features(segments_r,    #Segments in raster format
+                         segments_v,    #Segments in vector format
+                         statistics=TRUE,    #Logical: If ==TRUE the statistics listed in stat.methods are calculated
+                         stat.rasters=c("RGB.1","RGB.2","RGB.3"),  #Character vector of the grass-names of the rasters for which the
+                         #statistics listed in stat.methods are calculated. 
+                         stat.methods=c("mean","sd","median","max","min"),  #Options: mean,sd,max,min,median ...
+                         texture=TRUE,       #Logical: If ==TRUE the texture parameters listed in text.methods are calculated
+                         text.rasters=c("RGB.1","RGB.2","RGB.3"),  #Character vector of the grass-names of the rasters for which the 
+                         #texture parameters listed in text.methods are calculated
+                         text.methods=c("entr","sv"),  #Options: asm, contrast, corr, var, idm, sa, se, sv, entr, dv, de, moc1, moc2
+                         #See  http://grass.osgeo.org/grass70/manuals/r.texture.html for more info
+                         text.window=3,   #The size of moving window (odd and >= 3)
+                         text.stats=c("mean","sd"),    #How should the texture (which is pixel-based) Options: mean,sd,max,min,median ...
+                         shape=TRUE,         #Logical: If ==TRUE shape parameters are calculated
+                         rasters.output=TRUE, #Logical: If ==TRUE raster outputs are created in the return
+                         texture.output=TRUE #Logical: If ==TRUE raster outputs are created for the original
+                         #texture (pixel-based) images
+)
+
+#EXPORT RASTER FILES
+for (i in 1:length(features[[2]])){
+  writeRaster(features[[2]][[i]],paste0("C:/output/superpixel/Texture/4000/r2_c1/r2_c1",names(features[[2]])[i],".tif"),datatype="FLT4S")
+}
+
+#EXPORT VECTOR FILES
+for (i in 1:length(features[[2]])){
+  gdal_polygonizeR(features[[2]][[i]], paste0("C:/output/superpixel/Texture/4000/r2_c1/r2_c1", names(features[[2]])[i]))
+}
