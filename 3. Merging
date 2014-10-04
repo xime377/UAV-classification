@@ -1,0 +1,24 @@
+###Set dir
+setwd("C:/output/superpixel/Tiling/ARAMACHAY/4000")
+
+###LOAD LIBRARIES
+library(maptools)
+library(rgdal)
+library(sp)
+
+####Load segments
+segments<-list.files(pattern=".shp$", recursive=T, full.names=T)
+num_seg<-length(segments)
+num_seg
+uid=1
+i=1
+segments[1]
+s <- system.time(lapply(1:num_seg, function(i) shapefile(segments[i])))
+ss <- system.time(do.call(bind, s))
+ss
+plot(coordinates(ss))#a quick view of the center points of each segment
+# Write and Export as a shapefile 
+system.time(shapefile(ss, "C:/output/superpixel/Tiling/ARAMACHAY/4000/segments_complete.shp"))
+
+
+
