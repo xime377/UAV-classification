@@ -1,0 +1,188 @@
+#Load libraries
+library(raster)
+library(maptools)
+library(rgeos)
+library(rgdal) 
+library(fields)
+library(sp)
+library(ggplot2)
+library(plyr)
+library(Hmisc)
+
+#Load rasters
+
+texture_data<-list.files(path=("C:/output/superpixel/Texture/4000/r2_c1/tiff"), (pattern=".tif$"), full.names=T)
+num_layer<-length(texture_data)
+texture_stack<-stack(texture_data)
+
+writeRaster(texture_stack, filename="Texture_r2c1_4000", format="GTiff", overwrite=TRUE)
+
+#####values=getValues(texture_stack) #Extracting values## only if there's no values
+texture=matrix(values[,1], nrow=4000, ncol=4000)
+image.plot(texture)
+
+
+#Load class vector
+
+classes=readOGR(dsn="C:/output/superpixel/Classification/Manual", layer="20130220-ARAMACHAY_1_polygons")
+plot(classes)
+
+
+#Extract values to the vector
+Valuesd<- extract(texture_stack, classes, df=T,method='bilinear', nl=31, fun=mean, sp=T) 
+
+head(Valuesd)
+
+
+#Export vector as .shp
+writePolyShape(Valuesd, fn="C:/output/superpixel/Classification/Landcover")
+
+
+
+
+#########Boxplots###########
+plot(r2_c1area~Crop, data=Valuesd)  #Plots all the classes
+
+
+###########???? its not working--->maybe use ggplot
+for (i in 1:length(Valuesd)) {
+  boxplot(Valuesd[,i], paste0("C:/output/superpixel/Texture/4000/r2_c1/r2_c1",names(features[[2]])[i],".jpg"))
+  }
+
+plot(Crop,  )
+dev.off()
+######################3
+
+
+#####Plots by texture###
+
+#area
+plot(r2_c1area~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#compactness
+plot(r2_c1compactness~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#fd
+plot(r2_c1fd~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#length
+plot(r2_c1length~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#max_RGB.1
+plot(r2_c1max_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#max_RGB.2
+plot(r2_c1max_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#max_RGB.3
+plot(r2_c1max_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_entr_RGB.1
+plot(r2_c1mean_entr_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_entr_RGB.2
+plot(r2_c1mean_entr_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_entr_RGB.3
+plot(r2_c1mean_entr_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_RGB.1
+plot(r2_c1mean_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_RGB.2
+plot(r2_c1mean_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_RGB.3
+plot(r2_c1mean_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_sv_RGB.1
+plot(r2_c1mean_sv_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_sv_RGB.2
+plot(r2_c1mean_sv_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#mean_sv_RGB.3
+plot(r2_c1mean_sv_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#median_RGB.1
+plot(r2_c1median_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#median_RGB.2
+plot(r2_c1median_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#median_RGB.3
+plot(r2_c1median_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#min_RGB.1
+plot(r2_c1min_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#min_RGB.2
+plot(r2_c1min_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#min_RGB.3
+plot(r2_c1min_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_entr_RGB.1
+plot(r2_c1sd_entr_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_entr_RGB.2
+plot(r2_c1sd_entr_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_entr_RGB.3
+plot(r2_c1sd_entr_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_RGB.1
+plot(r2_c1sd_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_RGB.2
+plot(r2_c1sd_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_RGB.3
+plot(r2_c1sd_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_sv_RGB.1
+plot(r2_c1sd_sv_RGB.1~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_sv_RGB.2
+plot(r2_c1sd_sv_RGB.2~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+#sd_sv_RGB.3
+plot(r2_c1sd_sv_RGB.3~Crop, data=Valuesd,  col=c("chartreuse4", "antiquewhite4", "chocolate1", "beige", "darkkhaki", "darkolivegreen4", "antiquewhite1","darkgreen", "cornsilk2"), 
+     names=c("Alfalfa", "Barley", "Beans", "Buildings", "Oats", "Potato", "Quinoa", "Raygrass", "Rest"))
+
+Valuesp<-as.data.frame(Valuesd)
+plot(Valuesp)
+
+summary(Valuest.df)
+write.table(Valuest.df,file="C:/output/superpixel/Texture/4000/results.csv",quote=T,sep=",", na = "NA",
+            dec = ".", row.names = T,col.names = T)
