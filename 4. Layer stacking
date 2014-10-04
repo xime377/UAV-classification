@@ -1,0 +1,175 @@
+###Set dir
+setwd("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000")
+
+###LOAD LIBRARIES
+library(raster)
+library(maptools)
+library(rgeos)
+
+###Load rasters
+#Layer compactness
+datacompt<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*compactness.tif$"), full.names=T), raster)
+num_layer<-length(datacompt)
+raster.mosaic.1=datacompt
+raster.mosaic.1$fun=mean #function to decide the values in overlaps
+compactness=do.call(mosaic, raster.mosaic.1)
+plot(compactness)
+
+writeRaster(compactness, filename="compactness_4000", format="GTiff", overwrite=TRUE)
+
+#Layer DEM
+dataDEM<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*DEM.tif$"), full.names=T), raster)
+num_layer<-length(dataDEM)
+raster.mosaic.2=dataDEM
+raster.mosaic.2$fun=mean #function to decide the values in overlaps
+DEM=do.call(mosaic, raster.mosaic.2)
+plot(DEM)
+
+writeRaster(DEM, filename="DEM_4000", format="GTiff", overwrite=TRUE)
+
+#Layer max_RGB.2
+datamax_RGB.2<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*max_RGB.2.tif$"), full.names=T), raster)
+num_layer<-length(datamax_RGB.2)
+raster.mosaic.3=datamax_RGB.2
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+max_RGB.2=do.call(mosaic, raster.mosaic.3)
+plot(max_RGB.2)
+
+writeRaster(max_RGB.2, filename="max_RGB.2_4000", format="GTiff", overwrite=TRUE)
+
+#Layer mean_entr_RGB.2
+datamean_entr_RGB.2<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*mean_entr_RGB.2.tif$"), full.names=T), raster)
+num_layer<-length(datamean_entr_RGB.2)
+raster.mosaic.3=datamean_entr_RGB.2
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+mean_entr_RGB.2=do.call(mosaic, raster.mosaic.3)
+plot(mean_entr_RGB.2)
+
+writeRaster(mean_entr_RGB.2, filename="mean_entr_RGB.2_4000", format="GTiff", overwrite=TRUE)
+
+#Layer mean_RGB.2
+datamean_RGB.2<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*mean_RGB.2.tif$"), full.names=T), raster)
+num_layer<-length(datamean_RGB.2)
+raster.mosaic.3=datamean_RGB.2
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+mean_RGB.2=do.call(mosaic, raster.mosaic.3)
+plot(mean_RGB.2)
+
+writeRaster(mean_RGB.2, filename="mean_RGB.2_4000", format="GTiff", overwrite=TRUE)
+
+#Layer mean_sv_RGB.2
+datamean_sv_RGB.2<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*mean_sv_RGB.2.tif$"), full.names=T), raster)
+num_layer<-length(datamean_sv_RGB.2)
+raster.mosaic.3=datamean_sv_RGB.2
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+mean_sv_RGB.2=do.call(mosaic, raster.mosaic.3)
+plot(mean_sv_RGB.2)
+
+writeRaster(mean_sv_RGB.2, filename="mean_sv_RGB.2_4000", format="GTiff", overwrite=TRUE)
+
+#Layer min_RGB.3
+datamin_RGB.3<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*min_RGB.3.tif$"), full.names=T), raster)
+num_layer<-length(datamin_RGB.3)
+raster.mosaic.3=datamin_RGB.3
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+min_RGB.3=do.call(mosaic, raster.mosaic.3)
+plot(min_RGB.3)
+
+writeRaster(min_RGB.3, filename="min_RGB.3_4000", format="GTiff", overwrite=TRUE)
+
+#Layer sd_entr_RGB.1
+datasd_entr_RGB.1<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*sd_entr_RGB.1.tif$"), full.names=T), raster)
+num_layer<-length(datasd_entr_RGB.1)
+raster.mosaic.3=datasd_entr_RGB.1
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+sd_entr_RGB.1=do.call(mosaic, raster.mosaic.3)
+plot(sd_entr_RGB.1)
+
+writeRaster(sd_entr_RGB.1, filename="sd_entr_RGB.1_4000", format="GTiff", overwrite=TRUE)
+
+#Layer sd_RGB.2
+datasd_RGB.2<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*sd_RGB.2.tif$"), full.names=T), raster)
+num_layer<-length(datasd_RGB.2)
+raster.mosaic.3=datasd_RGB.2
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+sd_RGB.2=do.call(mosaic, raster.mosaic.3)
+plot(sd_RGB.2)
+
+writeRaster(sd_RGB.2, filename="sd_RGB.2_4000", format="GTiff", overwrite=TRUE)
+
+#Layer sd_sv_RGB.1
+datasd_sv_RGB.1<-lapply(list.files(path=("C:/ximena/output/superpixel/Texture/ARAMACHAY/4000/tiff"), (pattern="*sd_sv_RGB.1.tif$"), full.names=T), raster)
+num_layer<-length(datasd_sv_RGB.1)
+raster.mosaic.3=datasd_sv_RGB.1
+raster.mosaic.3$fun=mean #function to decide the values in overlaps
+sd_sv_RGB.1=do.call(mosaic, raster.mosaic.3)
+plot(sd_sv_RGB.1)
+
+writeRaster(sd_sv_RGB.1, filename="sd_sv_RGB.1_4000", format="GTiff", overwrite=TRUE)
+
+#Stack all the layers
+raster_data<-list.files(path=("C:/ximena/output/superpixel/Texture/4000"), (pattern=".tif$"), full.names=T)
+num_layer<-length(raster_data)
+num_layer #must coincide with the number of variables for the classification
+raster_stack<-stack(raster_data)
+
+writeRaster(raster_stack, filename="model_ARAMACHAY_4000", format="GTiff", overwrite=TRUE)
+
+
+###LOAD SEGMENTS
+segments<-readOGR(dsn="C:/output/superpixel/Tiling/ARAMACHAY/4000", layer="segments_merged")
+
+
+###LOAD CLASS VECTOR
+classes<-readOGR(dsn="C:/output/superpixel/Classification/Manual/ARAMACHAY/4000", layer="segments_merged")
+classes.df<-as.data.frame(classes)
+
+####LOAD IMAGE
+image.path="C:/data/20130220-ARAMACHAY_1_lap1/20130220-ARAMACHAY_1_lap1.tif"
+image=stack(image.path)
+
+
+###VISUALIZE
+plotRGB(image)
+plot(segments, bg="transparent", add=T)
+
+
+###REDUCE INFO BY SAMPLING
+points<-spsample(segments, n=5000, type="stratified")#only extracts coordinates... 
+points.df<-as.data.frame(points)
+head(points)
+plot(points)
+
+
+###EXTRACT LAYER STACK VALUES
+Valuesd<- extract(layer_stack, points, df=T,method='simple', nl=31, fun=mean, sp=T)
+head(Valuesd)
+
+
+###EXTRACT INFO LANDCOVER
+class<-over(Valuesd, classes)
+class.df<-as.data.frame(class)
+class.f<-cbind(points.df,class.df)
+Landcover<-cbind(class.f,Valuesd)
+coordinates(Landcover) <- ~ x1+x2
+head(Landcover)
+
+###EXPORT VECTOR AS .shp
+writePointsShape(Landcover,"C:/output/superpixel/Classification/Landcover2")
+
+
+###EXPORT VECTOR AS A RASTER
+train<-rasterize(Landcover, layer_stack, filename="C:/output/superpixel/Classification/training",
+                 na.rm=T, overwrite=T)
+
+
+###EXPORT DATA AS .csv
+class.df<-as.data.frame(Landcover)
+plot(class.df)
+summary(class.df)
+write.table(class.df,file="C:/output/superpixel/Texture/4000/Landcover.csv",quote=T,sep=",", na = "NA",
+            dec = ".", row.names = T,col.names = T)
+
+
+
+
