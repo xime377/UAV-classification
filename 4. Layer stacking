@@ -26,6 +26,7 @@ CH<-raster("./4_Height/JH_1_canopyH.tif") #if CH is not available, DSM can be us
 
 #Stack all the layers
 raster_stack<-stack(texture_data, CH)
+raster_stack<-stack(texture_data) #without CH
 
 #Export the stack
 writeRaster(raster_stack, filename="./6_Classification/layers_JH_1_5001", format="GTiff", overwrite=F)
