@@ -6,6 +6,10 @@
 #
 #
 
+###SET WD
+#setwd("/home/xtagle/UAV/Results/") #Linux
+setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
+
 ###LOAD LIBRARIES
 library(raster)
 library(maptools)
@@ -32,8 +36,8 @@ beginCluster()#to speed up the process
 ####LOAD LAYER_STACK
 layer_stack<-stack("./6_Classification/layers_JH_1_5001.tif")
 names(layer_stack)<-c("area",  "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
-                       "mean_entr_RGB.red", "mean_RGB.green",
-                       "mean_RGB.red", "CH") 
+                      "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
+                      "mean_RGB.red") 
 
 #If you want to see all the layers one by one
 beginCluster() #speeds up
@@ -52,11 +56,11 @@ plot(Training.p)
 Training.p.df<-as.data.frame(Training.p)
 head(Training.p.df)
 
-Training.p.df<- dplyr::filter(Training.p.df, complete.cases(label))
+Training.p.df<- dplyr::filter(Training.p.df, complete.cases(label)) #use in case there is a point without label
 
 names(Training.p.df) <- c("ID","value", "class", "area", "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
-                          "mean_entr_RGB.red", "mean_RGB.green",
-                          "mean_RGB.red", "CH", "coord.x", "coord.y")   
+                          "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
+                          "mean_RGB.red", "coord.x", "coord.y")   
 
 head(Training.p.df)
 
@@ -68,7 +72,7 @@ inTrain <- createDataPartition(Training.p.df$class, p = 2/3, list = F);
 
 
 #### DEFINE THE FORMULA
-fmla <- class ~ CH+compactness+mean_entr_RGB.green+mean_RGB.green+fd+ #Select the layers that could help to distinguish the classes
+fmla <- class ~ compactness+mean_entr_RGB.green+mean_RGB.green+fd+ #Select the layers that could help to distinguish the classes
                 mean_entr_RGB.blue
 
 
@@ -82,11 +86,11 @@ results<-classification.multiple.ho(data=Training.p.df,     #dataset
                                     methods=c("knn", "rf"),  #Write which classification  is needed other options are "svmRadial", "rpart"
                                     tuneLength=10, #number of parameters to test
                                     print.report=TRUE,
-                                    output.name="./6_Classification/multiple_JH_5001")
+                                    output.name="multiple_JH_5001")
 
 
 #LOAD THE MODEL
-load("./6_Classification/reports/multiple_JH_5001/results_ho.Rdata")
+load("./reports/multiple_JH_5001/results_ho.Rdata")
 model=results.ho[[2]]$rf
 
 
