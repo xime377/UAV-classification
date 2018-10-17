@@ -15,26 +15,48 @@ library(raster)
 library(maptools)
 library(rgdal)
 library(sp)
+library(dplyr)
+library(sf)
 
 ####LOAD LAYER_STACK
 raster_stack<-stack("./6_Classification/layers_JH_1_5001.tif")
 names(raster_stack)<-c("area",  "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
                        "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
                        "mean_RGB.red") 
-###LOAD SEGMENTS
-segments<-readOGR(dsn="./2_Segmentation", layer="segments_JH_1_5001")
-#segments<-CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
 ###LOAD CLASS VECTOR
-#training_data<-readOGR("./5_Training/Training_classes.shp") To use when you have GPS points with ground information
-#classess<-over(segments, training_data)
+##To use when you have GPS points with ground information
+#points<-readOGR("./5_Training/Training_classes.shp")
 
-classes<-readOGR(dsn="./5_Training", layer="segments_JH_1_5001_class") #if the training points were obtained from another source
-head(classes@data)
-classes.df<-as.data.frame(classes@data)
-head(classes.df)
-summary(classes.df)
+##To use if the training data were obtained from another source (polygons digitized in QGIS for example)
+#Segments with the class assigned
+classes<-st_read(dsn="./5_Training", layer="segments_JH_1_5001_class") 
+Classes.F<- dplyr::filter(classes, complete.cases(label)) #SELECT ONLY SEGMENTS WITH A CLASS ASSIGNED
+head(Classes.F)
+Classes.F<- as(Classes.F, "Spatial") #convert to sp 
 
+#Extract a point from each segment
+points<-spsample(Classess, n=101, type="stratified")#only extracts the coordinates
+points.df<-as.data.frame(points)
+head(points)
+plot(points, col="red")
+
+
+# #Polygons with training data bigger than segments
+# classes<-readOGR(dsn="./5_Training", layer="segments_JH_1_5001_class") 
+# head(classes@data)
+# classes.df<-as.data.frame(classes)
+# head(classes.df)
+# summary(classes.df)
+
+# #Load segments
+# segments<-readOGR(dsn="./2_Segmentation", layer="segments_JH_1_5001")
+
+# #Reduce info by sampling
+# points<-spsample(segments, n=500, type="stratified")#only extracts coordinates... 
+# points.df<-as.data.frame(points)
+# head(points)
+# plot(points)
 
 ####LOAD IMAGE
 image.path="./1_Clip/JH_1.tif"
@@ -42,27 +64,16 @@ image=stack(image.path)
 
 ###VISUALIZE
 plotRGB(image)
-plot(segments, bg="transparent", add=T)
-
-
-###SELECT ONLY SEGMENTS ASSIGNED
-classess<- dplyr::filter(segments, complete.cases(label))
-
-
-###REDUCE INFO BY SAMPLING
-points<-spsample(segments, n=500, type="clustered", nclustesr=5, iter=10)#only extracts coordinates... 
-points.df<-as.data.frame(points)
-head(points)
-plot(points)
-
+plot(Classes.F, bg="transparent", add=T)
+plot(points, col="red", bg="transparent", add=T)
 
 ###EXTRACT LAYER STACK VALUES
-Valuesd<- raster::extract(raster_stack, points, df=T,method='simple', fun=mean, sp=T)
+Valuesd<- raster::extract(raster_stack, points, df=T, method='simple', fun=mean, sp=T)
 head(Valuesd@data)
 names(Valuesd@data)
 
 ###EXTRACT INFO CLASSSES
-class<-over(Valuesd, classes)
+class<-over(Valuesd, Classes.F)
 class.df<-as.data.frame(class)
 head(class)
 
