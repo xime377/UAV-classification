@@ -1,45 +1,76 @@
+############################IMAGE SEGMENTATION##################################
+#
+#
+#This script segments an image to perform an object-based classification (OBIA)
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
+#
+#
+
+
+###SET Working Directory 
+#setwd("/home/xtagle/UAV/Results/") #Linux
+setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
+
+
 ###LOAD LIBRARIES
 library(raster)
-library(maptools)
+#library(maptools)
 library(rgeos)
-library(spgrass6)
+library(rgdal)
+library(rgrass7)
+#library(spgrass7)
+#library(RCurl)
+library(sf)
+library(RCurl)
 
-###LOAD EXISTING SCRIPTS
-source("C:/Users/Ximena/Documents/P7/Vito/Ruben/load.to.grass.R")
-source("C:/Users/Ximena/Documents/P7/Vito/Ruben/make.group.grass.R")
-source("C:/Users/Ximena/Documents/P7/Vito//Ruben/segmentation.grass.R")
-
+###LOAD FUNCTIONS
+source("./lib/load.to.grass.R")
+source("./lib/make.group.grass.R")
+source("./lib/segmentation.grass.R")
+#or 
+#script <- getURL("https://raw.githubusercontent.com/xime377/UAV-classification/master/load.to.grass.R", ssl.verifypeer = F)
+#eval(parse(text = script))
 
 ####LOAD IMAGE
-image.path="C:/data/20130220-ARAMACHAY_1_lap1tiles4000/20130220-ARAMACHAY_1_lap1_row2_col1.tif"
+image.path="./1_Clip/JH_1.tif"
 image=stack(image.path)
 plotRGB(image)
 
 
-###INITIATE GRASS-R CONNECTION
-initGRASS("C:/GRASSGIS7.0.svn", tempdir(), override=TRUE) #path to GRASS
 
+###INITIATE GRASS-R CONNECTION
+initGRASS("C:/Program Files/GRASS GIS 7.2.2", tempdir(), override=TRUE) #path to GRASS windows PC
+#initGRASS("/opt/shared/grass-7.2.2/grass-7.2.2", home = tempdir(), gisDbase = tempdir(), location = "xtagle(tempfile())", mapset = "user1(tempfile())", override = TRUE)  #path to GRASS Linux cluster 
+
+
+#REMOVE TEMPORARY FILES
+#execGRASS("g.remove", flags = "f")
 
 #LOAD IMAGE AND VECTOR TO GRASS
 load.to.grass(image.path,"RGB")
 
 
 #SET REGION PARAMETER TO MATCH RGB
-execGRASS("g.region",parameters=list(rast="RGB.1"))
+execGRASS("g.region", parameters= list(raster="RGB.red"))
 execGRASS("g.region",flags="p") #check
 
+
 #MAKE GROUP (needed for segmentation)
-make.group.grass(c("RGB.1","RGB.2","RGB.3"),"group-1")
-#make.group.grass(c("RGB.red"),"group-2")
+make.group.grass(c("RGB.red","RGB.green","RGB.blue"),"group-1")
+#make.group.grass(c("RGB.1", "RGB.2","RGB.3"),"group-2")
 
 ##PERFORM SEGMENTATION
-segments=segmentation.grass(group="group-1",ext=NA,min.size=2,threshold=0.2)
+segments<-segmentation.grass(group="group-1",ext=NA,min.size=50,threshold=0.1)  #min.size: grouping of pixels, threshold: similarity, higher values bigger segments
 
-#the created object segments contains both a raster & vector representation of the segments
-plotRGB(image)
-plot(segments$segments_v,add=TRUE)
 
+#Visualize
+#plotRGB(image)
+#plot(segments$segments_v,add=T)
 
 ##EXPORT SEGMENTS
-execGRASS("r.out.gdal", parameters=list(input="segments_r", output="C:/output/superpixel/Texture/4000/r2_c1/segments_r.tif", type="Float64"))
-execGRASS("v.out.ogr", parameters=list(input="segments_v", dsn="C:/output/superpixel/Texture/4000/r2_c1/segments_v.shp"))
+execGRASS("r.out.gdal", parameters=list(input="segments_r", output="./2_Segmentation/segments_JH_1_5001.tif", type="Float64"))
+execGRASS("v.out.ogr", parameters=list(input="segments_v", type="area", output="./2_Segmentation/segments_JH_5001.shp"))
+
+
+#END CONNECTION
+unlink_.gislock()
