@@ -58,7 +58,7 @@ classification.multiple.ho <- function(data,       #dataset
   }
   
   if (print.report==TRUE){
-    mainDir <- "./reports"
+    mainDir <- "./6_Classification/reports"
     subDir <- output.name
     
     dir.create(file.path(mainDir, subDir))
