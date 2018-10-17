@@ -36,7 +36,7 @@ head(Classes.F)
 Classes.F<- as(Classes.F, "Spatial") #convert to sp 
 
 #Extract a point from each segment
-points<-spsample(Classess, n=101, type="stratified")#only extracts the coordinates
+points<-spsample(Classes.F, n=101, type="stratified")#only extracts the coordinates
 points.df<-as.data.frame(points)
 head(points)
 plot(points, col="red")
