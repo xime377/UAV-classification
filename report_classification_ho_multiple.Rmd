@@ -1,0 +1,46 @@
+Report
+========================================================
+
+This document summarizes the results obtained using **classification.ho** with the following settings:
+
+```{r, echo=FALSE}
+#find call of funciton
+library(reshape)
+library(ggplot2)
+library(knitr)
+```
+
+Graphs
+========================================================
+
+```{rwarning=FALSE, eval=TRUE, message=FALSE, tidy=TRUE, echo=FALSE, fig.show='hold', fig.align='center'}
+m=melt(results)
+names(m)[c(1,2)]=c("parameter","model")
+parameter<-data.frame(do.call('rbind', strsplit(as.character(m$parameter),'.', fixed=TRUE)))
+m=cbind(parameter,m[,c(2,3)])
+names(m)[c(1,2)]=c("parameter","class")
+m$class[is.na(match(m$class,c("Kappa","Overall_Acc")))==FALSE]=NA
+
+param="Overall_Acc"
+mat=m[m$parameter==param,]
+ggplot(mat,aes(x=model,y=value))+geom_bar(stat="identity", position="dodge")+theme_bw()+ggtitle(param)+theme(plot.title = element_text(lineheight=.8, face="bold"))+ylim(c(0,1))
+
+param="Prod_Acc"
+mat=m[m$parameter==param,]
+ggplot(mat,aes(x=model,y=value,fill=class))+geom_bar(stat="identity", position="dodge")+theme_bw()+ ggtitle(param)+theme(plot.title = element_text(lineheight=.8, face="bold"))+ ylim(c(0,1))
+
+param="User_Acc"
+mat=m[m$parameter==param,]
+ggplot(mat,aes(x=model,y=value,fill=class))+geom_bar(stat="identity", position="dodge")+theme_bw()+ ggtitle(param)+theme(plot.title = element_text(lineheight=.8, face="bold"))+ ylim(c(0,1))
+```
+
+Tables
+========================================================
+```{r}
+print(results)
+```
+
+```{r}
+print(conf.mat.ho)
+```
+
