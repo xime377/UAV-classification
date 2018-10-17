@@ -18,12 +18,6 @@ library(rgeos)
 library(sf)
 
 
-####LOAD DSM
-D.path<-"E:/Orthomosaics/Monan/2017/VEN-01/VEN-01_all/3_dsm_ortho/1_dsm/VEN-01_all_dsm.tif" 
-DSM<-raster(D.path)
-#plot(DSM)
-
-
 ####LOAD ORTHOMOSAIC
 o.path<-"./1_Clip/JH_1.tif" 
 OM<-raster(o.path)
