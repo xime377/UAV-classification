@@ -21,7 +21,7 @@ num_layer<-length(texture_data)
 num_layer 
 
 #Canopy height
-CH<-raster("./4_Height/JH_1_canopyH.tif")
+CH<-raster("./4_Height/JH_1_canopyH.tif") #if CH is not available, DSM can be used too
 
 
 #Stack all the layers
@@ -31,4 +31,3 @@ raster_stack<-stack(texture_data, CH)
 writeRaster(raster_stack, filename="./6_Classification/layers_JH_1_5001", format="GTiff", overwrite=F)
 
 
-######################################################################################
