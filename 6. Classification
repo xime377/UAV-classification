@@ -1,42 +1,42 @@
-###SET DIRECTORY
-setwd("C:/Users/Ximena/Documents/P7/Vito/UAVprocessing")
-
+############################CLASSIFICATION##################################
+#
+#
+#This script performs an object-based classification using information from segments as inputs. Different classification models can be used at the same time
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
+#
+#
 
 ###LOAD LIBRARIES
 library(raster)
+library(maptools)
+library(rgdal)
 library(class)
 library(rgeos)
 library(rgdal)
 library(fields)
 library(sp)
-library(maptools)
-library(spgrass6)
+library(spgrass7)
+library(rgrass7)
 library(ProjectTemplate)
 library(reshape)
 library(caret)
 library(ggplot2)
 library(knitr)
 
-
-###LOAD EXISTING SCRIPTS
-load.project()
-
-#OR
-source("C:/Users/Ximena/Documents/P7/Vito/UAVprocessing/lib/classification.multiple.ho.R")
-
+###LOAD FUNCTIONS
+source("./lib/classification.multiple.ho.R")
+source("./lib/polygonizeR.R")
 
 ####LOAD LAYER_STACK
 beginCluster()#to speed up the process
-layer_stack.path="C:/output/superpixel/Texture/ARAMACHAY/4000/model_ARAMACHAY_4000.tif"
-layer_stack=stack(layer_stack.path)
-names(layer_stack) <- c("compactness","DEM", "max_RGB2", "mean_entr_RGB2", #Raster and training sets must have the same variables names
-                        "mean_RGB2", "mean_sv_RGB2", "min_RGB3", "sd_entr_RGB1",
-                        "sd_RGB2", "sd_sv_RGB1")
-head(layer_stack)
-endCluster()
+####LOAD LAYER_STACK
+layer_stack<-stack("./6_Classification/layers_JH_1_5001.tif")
+names(layer_stack)<-c("area",  "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+                       "mean_entr_RGB.red", "mean_RGB.green",
+                       "mean_RGB.red", "CH") 
 
 #If you want to see all the layers one by one
-beginCluster()
+beginCluster() #speeds up
 animate(layer_stack) 
 endCluster()
 #vizualize the first layers
@@ -44,60 +44,76 @@ plot(layer_stack)
 
 
 ###LOAD CLASS VECTOR
-Training.p=readOGR(dsn="C:/output/superpixel/Classification", layer="Landcover_total") #Raster and training sets must have the same variables names
-names(Training.p) <- c("coord.x", "coord.y", "ID", "Landcover", "compactness","DEM", "max_RGB2", "mean_entr_RGB2", #Raster and training sets must have the same variables names
-                       "mean_RGB2", "mean_sv_RGB2", "min_RGB3", "sd_entr_RGB1",
-                       "sd_RGB2", "sd_sv_RGB1", "x1","y1")
-head(Training.p)
+Training.p<-shapefile("./5_Training/training.shp") #Raster and training sets must have the same variables names
+head(Training.p@data)
 plot(Training.p)
-training.points.df=as.data.frame(Training.p)
+
+
+Training.p.df<-as.data.frame(Training.p)
+head(Training.p.df)
+
+Training.p.df<- dplyr::filter(Training.p.df, complete.cases(label))
+
+names(Training.p.df) <- c("ID","value", "class", "area", "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+                          "mean_entr_RGB.red", "mean_RGB.green",
+                          "mean_RGB.red", "CH", "coord.x", "coord.y")   
+
+head(Training.p.df)
+
 
 
 
 #### DEFINE THE TRAINING INDICES
-inTrain <- createDataPartition(training.points.df$Landcover, p = 2/3, list = F); 
+inTrain <- createDataPartition(Training.p.df$class, p = 2/3, list = F); 
 
 
 #### DEFINE THE FORMULA
-fmla <- Landcover ~ DEM+compactness+max_RGB2+mean_entr_RGB2+mean_RGB2+mean_sv_RGB2+
-min_RGB3+sd_entr_RGB1+sd_RGB2+sd_sv_RGB1
+fmla <- class ~ CH+compactness+mean_entr_RGB.green+mean_RGB.green+fd+ #Select the layers that could help to distinguish the classes
+                mean_entr_RGB.blue
 
 
 
 ####CLASSIFICATION
-results=classification.multiple.ho(data=training.points.df,     #dataset
-                                   train.ind=inTrain, #training indices
-                                   fmla,         #formula
-                                   k=8,          #number of folds for training
-                                   times=10,     #number of resamples for training
-                                   methods=c("knn", "rpart", "rf", "svmRadial"),  #Write which classification  is needed
-                                   tuneLength=10, #number of parameters to test
-                                   print.report=TRUE,
-                                   output.name="multiple_20130220-ARAMACHAY")
+results<-classification.multiple.ho(data=Training.p.df,     #dataset
+                                    train.ind=inTrain, #training indices
+                                    fmla,         #formula
+                                    k=8,          #number of folds for training
+                                    times=10,     #number of resamples for training
+                                    methods=c("knn", "rf"),  #Write which classification  is needed other options are "svmRadial", "rpart"
+                                    tuneLength=10, #number of parameters to test
+                                    print.report=TRUE,
+                                    output.name="./6_Classification/multiple_JH_5001")
 
 
 #LOAD THE MODEL
-load("./reports/multiple_20130220-ARAMACHAY/results_ho.Rdata")
+load("./6_Classification/reports/multiple_JH_5001/results_ho.Rdata")
 model=results.ho[[2]]$rf
 
 
 #PREDICT FOR THE IMAGE USING RF MODEL
 beginCluster()#to speed up the process
-system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./predicted_output_rf_20130220-ARAMACHAY_obased.tif"))
+system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./VEN01/predicted_output_rf_VEN01_5001.tif"))
 endCluster()
 
+
+###TO VISUALIZE THE RESULTS##########
+###INITIATE GRASS-R CONNECTION
+initGRASS("C:/Program Files/GRASS GIS 7.2.2", tempdir(), override=TRUE) #path to GRASS
+
+#CONVERT TO POLYGON
+d<-raster("./6_Classification/predicted_output_rf_VEN01_5001.tif")
+gdal_polygonizeR(d, "./6_Classification/predicted_output_rf_VEN01_5001")
+
+
 #VISUALIZE VALIDATION POINTS
-training <- training.points.df[inTrain, ]
+training <- Training.p.df[inTrain, ]
 coordinates(training) <- ~ coord.x+coord.y
-testing <- training.points.df[-inTrain, ]
+testing <- Training.p.df[-inTrain, ]
 coordinates(testing) <- ~ coord.x+coord.y
 
-#Crossvalidation
-erf<-evaluate(training, testing, rf)# presence/absence
 
-
-#Load image
-image.path="C:/data/20130220-ARAMACHAY_1_lap1/20130220-ARAMACHAY_1_lap1.tif"
+####LOAD IMAGE
+image.path="./VEN01/VEN-01_9065.tif"
 image=stack(image.path)
 
 #Visualize info
