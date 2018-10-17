@@ -105,8 +105,8 @@ endCluster()
 initGRASS("C:/Program Files/GRASS GIS 7.2.2", tempdir(), override=TRUE) #path to GRASS
 
 #CONVERT TO POLYGON
-d<-raster("./6_Classification/predicted_output_rf_VEN01_5001.tif")
-gdal_polygonizeR(d, "./6_Classification/predicted_output_rf_VEN01_5001")
+d<-raster("./6_Classification/predicted_output_rf_JH_1_5001.tif")
+gdal_polygonizeR(d, "./6_Classification/predicted_output_rf_JH_1_5001")
 
 
 #VISUALIZE VALIDATION POINTS
