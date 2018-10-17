@@ -81,7 +81,7 @@ writeOGR(species,"./5_Training", layer="training", driver="ESRI Shapefile")
 
 
 ###EXPORT VECTOR AS A RASTER
-train<-rasterize(species, layer_stack, filename="./5_Training",
+train<-rasterize(species, layer_stack, filename="./5_Training/training",
                  na.rm=T, overwrite=T)
 
 
