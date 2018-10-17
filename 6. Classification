@@ -8,7 +8,7 @@
 
 ###SET WD
 #setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
+setwd("G:/My Drive/Monan/Taller_Oct") #Windows
 
 ###LOAD LIBRARIES
 library(raster)
@@ -90,13 +90,13 @@ results<-classification.multiple.ho(data=Training.p.df,     #dataset
 
 
 #LOAD THE MODEL
-load("./reports/multiple_JH_5001/results_ho.Rdata")
+load("./6_Classification/reports/multiple_JH_5001/results_ho.Rdata")
 model=results.ho[[2]]$rf
 
 
 #PREDICT FOR THE IMAGE USING RF MODEL
 beginCluster()#to speed up the process
-system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./VEN01/predicted_output_rf_VEN01_5001.tif"))
+system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./6_Classification/predicted_output_rf_JH_1_5001.tif"))
 endCluster()
 
 
@@ -117,7 +117,7 @@ coordinates(testing) <- ~ coord.x+coord.y
 
 
 ####LOAD IMAGE
-image.path="./VEN01/VEN-01_9065.tif"
+image.path="./1_Clip/JH_1.tif"
 image=stack(image.path)
 
 #Visualize info
