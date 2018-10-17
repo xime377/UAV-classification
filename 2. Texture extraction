@@ -83,10 +83,10 @@ features=object.features(segments_r,    #Segments in raster format
 
 #EXPORT RASTER FILES
 for (i in 1:length(features[[2]])){
-  writeRaster(features[[2]][[i]],paste0("./3_Texture_ext/Btext_VEN01_5001",names(features[[2]])[i],".tif"),datatype="FLT4S")
+  writeRaster(features[[2]][[i]],paste0("./3_Texture_ext/text_JH_1_5001",names(features[[2]])[i],".tif"),datatype="FLT4S")
 }
 
 #EXPORT VECTOR FILES
 #for (i in 1:length(features[[2]])){
-#  gdal_polygonizeR(features[[2]][[i]], paste0("./3_Texture_ext/Btext_VEN01_5001", names(features[[2]])[i]))
+#  gdal_polygonizeR(features[[2]][[i]], paste0("./3_Texture_ext/text_JH_1_5001", names(features[[2]])[i]))
 #}
