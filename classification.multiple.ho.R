@@ -63,7 +63,7 @@ classification.multiple.ho <- function(data,       #dataset
     
     dir.create(file.path(mainDir, subDir))
    
-    knit("./lib/report_classification_ho_multiple.rmd",output=paste0(file.path(
+    knit("./lib/report_classification_ho_multiple.Rmd",output=paste0(file.path(
       mainDir, subDir),"/report_ho"),envir=new.env())
     knit2html(paste0(file.path(mainDir, subDir),"/report_ho"))
     file.rename("report_ho.html", paste0(file.path(mainDir, subDir),"/report_ho.html"))
