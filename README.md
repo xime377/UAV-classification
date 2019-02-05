@@ -10,6 +10,7 @@ Steps:
 In case of the need to crop the UAV image use the following scripts:
 
 0.1. Point_to_poly Script to create a polygon that will define the area of subset
+
 0.2. Clipping.R Script to subset de image to an area of interest using GDAL
 
 To start the process use the following scripts:
