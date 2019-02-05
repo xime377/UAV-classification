@@ -16,7 +16,7 @@ To start the process use the following scripts:
 1.Segmentation.R Script to segment the image using GRASS GIS
 2.Texture extraction.R Script to extract information from each segment of the image
 3.Canopy_Height.R Script to obtain the canopy height by subtracting the DTM from the DSM
-4.Layer_stacking.R Script to combine all the layers that will be used in the classification
+4.Layer_stacking.R Script to combine all the layers that will be used for the classification
 5.Training_set.R Script to extract the information for training and validating the classification
 6.Classification.R Script with the classification methods and accuracy assessment
 
