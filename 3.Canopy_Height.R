@@ -1,16 +1,8 @@
-############################CANOPY HEIGHT##################################
-#
-#
-#This script extracts the height of the canopy by subtracting the DTM to the DSM in order to provide more information to the classification
-#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
-#
-#
-
 ###SET WD
 #setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
-
-
+#setwd("G:/My Drive/Monan/RPAs/Misiones/Results/") #Xime Pc
+# setwd("C:/Users/xtagle/Google Drive/Results") #Workstation
+setwd("E:/Drones/UAV/Results/JEN14/")
 
 ###LOAD LIBRARIES
 library(raster)
@@ -19,28 +11,32 @@ library(sf)
 
 
 ####LOAD ORTHOMOSAIC
-o.path<-"./1_Clip/JH_1.tif" 
+o.path<-"./1_Clip/JEN-14_3.tif" 
 OM<-raster(o.path)
-plot(OM)
+#plot(OM)
+
 
 ####LOAD DSM
-D.path<-"./1_Clip/JH_1_DSM.tif" 
+D.path<-"./1_Clip/JEN-14_3_DSM.tif" 
 DSM<-raster(D.path)
 #plot(DSM)
 
-####LOAD DTM
-T.path<-"./1_Clip/JH_1_DTM.tif" 
+####LOAD DEM
+T.path<-"./1_Clip/JEN-14_3_DEM.tif" 
 DTM<-raster(T.path)
 #plot(DTM)
 
+#Compare both to see if they have the same extent, resolution..
+compareRaster(DSM,DTM,extent=T, rowcol=T, crs=T, res=T, orig=T, rotation=T)
+
+#if the extent or resolution are different
+DTM<-projectRaster(DTM,DSM)
 
 #Remove the elevation
 CH<- DSM-DTM
-plot(CH)
+#plot(CH)
 
-#Check the values
-ValuesDSM<-DSM.We@data@values
-summary(ValuesDSM)
 
 #Export Canopy height
-writeRaster(CH,"./4_Height/JH_1_canopyH.tif")
+writeRaster(CH,"./4_Height/JEN14_CH.tif")
+
