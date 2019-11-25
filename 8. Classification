@@ -2,42 +2,56 @@
 #
 #
 #This script performs an object-based classification using information from segments as inputs. Different classification models can be used at the same time
-#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.gob.pe
 #
 #
 
-###SET WD
-#setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct") #Windows
+###SET WDIR
+setwd("G:/My Drive/Monan/RPAs/Misiones/Results/JEN14/") #Windows Xime PC
+#.libPaths("C:/Users/tagle002/R") #in case the lib folder is not in the default location
+#setwd("/home/xtagle/UAV/Results/") # Linux Manati
+
 
 ###LOAD LIBRARIES
 library(raster)
-library(maptools)
 library(rgdal)
 library(class)
 library(rgeos)
-library(rgdal)
 library(fields)
 library(sp)
-library(spgrass7)
-library(rgrass7)
 library(ProjectTemplate)
 library(reshape)
 library(caret)
 library(ggplot2)
 library(knitr)
+library(sf)
+library(rgrass7)
+library(rmapshaper)
 
 ###LOAD FUNCTIONS
-source("./lib/classification.multiple.ho.R")
-source("./lib/polygonizeR.R")
+#Local dir
+source("../lib/classification.multiple.ho.R")
+source("../lib/polygonizeR.R")
+##or github
+script <- getURL("https://raw.githubusercontent.com/xime377/UAV-classification/master/classification.multiple.ho.R", ssl.verifypeer = F)
+eval(parse(text = script))
+
+
 
 ####LOAD LAYER_STACK
 beginCluster()#to speed up the process
 ####LOAD LAYER_STACK
-layer_stack<-stack("./6_Classification/layers_JH_1_5001.tif")
-names(layer_stack)<-c("area",  "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
-                      "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
-                      "mean_RGB.red") 
+layer_stack<-stack("./6_Classification/layers_JEN14_50005.tif")
+names(layer_stack)<-c("area",  "compactness",  "fd",   "length", "max_RGB.blue", "max_RGB.green",      
+                      "max_RGB.red", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+                      "mean_entr_RGB.red", "mean_RGB.blue",  "mean_RGB.green",
+                      "mean_RGB.red", "mean_sv_RGB.blue",  "mean_sv_RGB.green",  
+                      "mean_sv_RGB.red", "median_RGB.blue",  "median_RGB.green", 
+                      "median_RGB.red", "min_RGB.blue", "min_RGB.green", 
+                      "min_RGB.red",  "sd_entr_RGB.blue", "sd_entr_RGB.green",  
+                      "sd_entr_RGB.red",  "sd_RGB.blue", "sd_RGB.green",
+                      "sd_RGB.red", "sd_sv_RGB.blue", "sd_sv_RGB.green",    
+                      "sd_sv_RGB.red","CH")   
 
 #If you want to see all the layers one by one
 beginCluster() #speeds up
@@ -48,82 +62,180 @@ plot(layer_stack)
 
 
 ###LOAD CLASS VECTOR
-Training.p<-shapefile("./5_Training/training.shp") #Raster and training sets must have the same variables names
-head(Training.p@data)
-plot(Training.p)
+Training.p<-st_read("./5_Training/training50005.shp") #Raster and training sets must have the same variables names
+#Training.p<-readOGR("./5_Training/training.shp") #when sf is not available
+head(Training.p)
+summary(Training.p)
+plot(Training.p[1])
+names(Training.p)
 
+names(Training.p) <- c("area",  "compactness",  "fd", 
+                       "length", "max_RGB.blue", "max_RGB.green",      
+                       "max_RGB.red", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+                       "mean_entr_RGB.red", "mean_RGB.blue",  "mean_RGB.green",
+                       "mean_RGB.red", "mean_sv_RGB.blue",  "mean_sv_RGB.green",  
+                       "mean_sv_RGB.red", "median_RGB.blue",  "median_RGB.green", 
+                       "median_RGB.red", "min_RGB.blue", "min_RGB.green", 
+                       "min_RGB.red",  "sd_entr_RGB.blue", "sd_entr_RGB.green",  
+                       "sd_entr_RGB.red",  "sd_RGB.blue", "sd_RGB.green",
+                       "sd_RGB.red", "sd_sv_RGB.blue", "sd_sv_RGB.green",    
+                       "sd_sv_RGB.red","CH", "class", "geometry")   #add "geometry" when working with sf
 
-Training.p.df<-as.data.frame(Training.p)
-head(Training.p.df)
+## Only if there were NAs-> Remove NAs
+#Training.p<- dplyr::filter(Training.p, complete.cases(CH))
 
-Training.p.df<- dplyr::filter(Training.p.df, complete.cases(label)) #use in case there is a point without label
-
-names(Training.p.df) <- c("ID","value", "class", "area", "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
-                          "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
-                          "mean_RGB.red", "coord.x", "coord.y")   
-
-head(Training.p.df)
-
-
+####To use when importing from QGIS##############################
+# Training.p.df<-as.data.frame(Training.p)
+# head(Training.p.df)
+# 
+# Training.p.df<- dplyr::filter(Training.p.df, complete.cases(label))
+#
+# names(Training.p.df) <- c("ID","value", "class", "area",  "compactness",  "fd",   "length", "max_RGB.blue", "max_RGB.green",      
+#                           "max_RGB.red", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+#                           "mean_entr_RGB.red", "mean_RGB.blue",  "mean_RGB.green",
+#                           "mean_RGB.red", "mean_sv_RGB.blue",  "mean_sv_RGB.green",  
+#                           "mean_sv_RGB.red", "median_RGB.blue",  "median_RGB.green", 
+#                           "median_RGB.red", "min_RGB.blue", "min_RGB.green", 
+#                           "min_RGB.red",  "sd_entr_RGB.blue", "sd_entr_RGB.green",  
+#                           "sd_entr_RGB.red",  "sd_RGB.blue", "sd_RGB.green",
+#                           "sd_RGB.red", "sd_sv_RGB.blue", "sd_sv_RGB.green",    
+#                           "sd_sv_RGB.red","CH", "coord.x", "coord.y")   
+# 
+# head(Training.p.df)
+#######################################################################
 
 
 #### DEFINE THE TRAINING INDICES
-inTrain <- createDataPartition(Training.p.df$class, p = 2/3, list = F); 
+inTrain <- createDataPartition(Training.p$class, p = 2/3, list = F); 
 
 
 #### DEFINE THE FORMULA
-fmla <- class ~ compactness+mean_entr_RGB.green+mean_RGB.green+fd+ #Select the layers that could help to distinguish the classes
-                mean_entr_RGB.blue
+#All the predictors
+# fmla <- class ~ compactness+area+ fd+length+ max_RGB.blue+ max_RGB.green+      
+#                           max_RGB.red+ mean_entr_RGB.blue+  mean_entr_RGB.green+
+#                           mean_entr_RGB.red+ mean_RGB.blue+  mean_RGB.green+
+#                           mean_RGB.red+ mean_sv_RGB.blue+  mean_sv_RGB.green+
+#                           mean_sv_RGB.red+ median_RGB.blue+  median_RGB.green+
+#                           median_RGB.red+ min_RGB.blue+ min_RGB.green+
+#                           min_RGB.red+  sd_entr_RGB.blue+ sd_entr_RGB.green+
+#                           sd_entr_RGB.red+  sd_RGB.blue+ sd_RGB.green+
+#                           sd_RGB.red+ sd_sv_RGB.blue+ sd_sv_RGB.green+
+#                           sd_sv_RGB.red+CH 
+
+#Selected predictors
+fmla <- class ~ CH+compactness+mean_sv_RGB.green+median_RGB.green+mean_entr_RGB.red 
 
 
 
 ####CLASSIFICATION
-results<-classification.multiple.ho(data=Training.p.df,     #dataset
+#All the predictors
+# results<-classification.multiple.ho(data=Training.p,     #dataset
+#                                     train.ind=inTrain, #training indices
+#                                     fmla,         #formula
+#                                     k=5,          #number of folds for training
+#                                     times=10,     #number of resamples for training
+#                                     methods=c("knn", "rpart", "rf", "svmRadial"),  #Write which classification  is needed
+#                                     tuneLength=10, #number of parameters to test
+#                                     print.report=TRUE,
+#                                     output.name="multiple_JEN14_all_50005_200")
+
+#Selected predictors
+results<-classification.multiple.ho(data=Training.p,     #dataset
                                     train.ind=inTrain, #training indices
                                     fmla,         #formula
-                                    k=8,          #number of folds for training
+                                    k=5,          #number of folds for training
                                     times=10,     #number of resamples for training
-                                    methods=c("knn", "rf"),  #Write which classification  is needed other options are "svmRadial", "rpart"
+                                    methods=c("knn", "rpart", "rf", "svmRadial"),  #Write which classification  is needed
                                     tuneLength=10, #number of parameters to test
                                     print.report=TRUE,
-                                    output.name="multiple_JH_5001")
+                                    output.name="multiple_JEN14_5_50005_200")
 
 
-#LOAD THE MODEL
-load("./6_Classification/reports/multiple_JH_5001/results_ho.Rdata")
+###LOAD THE MODEL
+#All the predictors
+load("./6_Classification/reports/multiple_JEN14_all_50005_200/results_ho.Rdata")
 model=results.ho[[2]]$rf
+modelSVMr=results.ho[[2]]$svmRadial
+
+#Selected predictors
+load("./6_Classification/reports/multiple_JEN14_5_50005_200/results_ho.Rdata")
+model=results.ho[[2]]$rf
+modelSVMr=results.ho[[2]]$svmRadial
 
 
-#PREDICT FOR THE IMAGE USING RF MODEL
+###CHECK VARIABLES OF IMPORTANCE 
+varImp(model)
+varImp(modelSVMr)
+
+
+###PREDICT FOR THE IMAGE USING RF MODEL
+#All the predictors
 beginCluster()#to speed up the process
-system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./6_Classification/predicted_output_rf_JH_1_5001.tif"))
+system.time(d <- clusterR(layer_stack, predict, args=list(model=model), filename = "./6_Classification/predicted_output_rf_JEN14_50005_200.tif"))
+endCluster()
+
+#Selected predictors
+beginCluster()#to speed up the process
+system.time(d <- predict(layer_stack, model, filename = "./6_Classification/predicted_output_rf_JEN14_50005_200_5.tif"))
 endCluster()
 
 
-###TO VISUALIZE THE RESULTS##########
-###INITIATE GRASS-R CONNECTION
-initGRASS("C:/Program Files/GRASS GIS 7.2.2", tempdir(), override=TRUE) #path to GRASS
+####PREDICT FOR THE IMAGE USING SVMR MODEL
+beginCluster()#to speed up the process
+system.time(d <- clusterR(layer_stack, predict, args=list(model=modelSVMr), filename = "./6_Classification/predicted_output_svmR_JEN14_50005_200.tif"))
+endCluster()
 
-#CONVERT TO POLYGON
-d<-raster("./6_Classification/predicted_output_rf_JH_1_5001.tif")
-gdal_polygonizeR(d, "./6_Classification/predicted_output_rf_JH_1_5001")
+
+###########################################################################
+###################CLEANING THE OUTPUT####################################
+###INITIATE GRASS-R CONNECTION
+initGRASS("C:/Program Files/GRASS GIS 7.6", tempdir(), override=TRUE) #path to GRASS win
+#initGRASS("/usr/lib64/grass76", tempdir(), override=TRUE) #linux
+
+###CONVERT TO POLYGON
+rf<-raster("./6_Classification/predicted_output_rf_JEN14_50005_200.tif")
+rf_filtered<-focal(rf, matrix(1,5,5), fun = modal) #low pass filter
+rf_poly<-gdal_polygonizeR(rf_filtered, "./6_Classification/predicted_output_rf_JEN14_50005_200_f5", 
+                          readpoly = T, fillholes = F, aggregate = F) # fillholes=T removes holes
+
+###CLEAN POLYGONS (remove small ones and fill holes)
+use_sp()# or choose use_sf when working with sf and stars
+#rf_poly<-st_read("./6_Classification/predicted_output_rf_JEN14_50005_200_f5.shp") #loading the file in case of a new session (use_sf)
+writeVECT(rf_poly, "rf_poly", v.in.ogr_flags=c("o", "overwrite"), snap=1e-008) #Load to GRASS as "sf"
+rf_cleaned1<-readVECT("rf_poly") #import to R
+
+execGRASS("v.clean", flags = c("overwrite"), tool=c('snap','rmdangle','rmdupl', 'rmdac', 'rmarea'), 
+          threshold= c(1e-008,-0.5,0,0,2) , input= "rf_poly", output= "rf_clean") #removes dangles, snaps, removes small polygons
+rf_cleaned2<-readVECT("rf_clean")
+rf_cleaned2@proj4string<-rf_poly@proj4string #add projection
+
+rf_cleaned3<-st_as_sf(rf_cleaned2)
+rf_cleaned3<-ms_dissolve(rf_cleaned3, field='DN') #dissolve adjacent polygons
+rf_cleaned3<-as(rf_cleaned3,'Spatial') #convert as sp
+rf_cleaned3<-disaggregate(rf_cleaned3) #split into unique polygons (the dissolve merges all the polygons in one big polygon per class)
+
+#EXPORT SHAPEFILE
+writeOGR(rf_cleaned3,"./6_Classification", layer="predicted_output_rf_JEN14_50005_200_f5cleaned", driver="ESRI Shapefile")
+
+####################################################################################
 
 
 #VISUALIZE VALIDATION POINTS
 training <- Training.p.df[inTrain, ]
-coordinates(training) <- ~ coord.x+coord.y
 testing <- Training.p.df[-inTrain, ]
-coordinates(testing) <- ~ coord.x+coord.y
+
+#Crossvalidation
+#erf<-evaluate(training, testing, rf)# presence/absence
 
 
 ####LOAD IMAGE
-image.path="./1_Clip/JH_1.tif"
+image.path="./JEN14/JEN-14_3.tif"
 image=stack(image.path)
 
-#Visualize info
+###VISUALIZE INFO
 plotRGB(image)
-points(training, pch=20, col="blue", cex=0.8,bg="transparent", add=TRUE)
-points(testing, pch=20, col="red", cex=0.8,, bg="transparent", add=TRUE)
+plot(training, pch=20, col="blue", cex=0.8,bg="transparent", add=TRUE)
+plot(testing, pch=20, col="red", cex=0.8,, bg="transparent", add=TRUE)
 legend("bottomright", legend=c("training p.", "validation p."), bty = "n",
        pch=20, col=c("blue", "red"))
 
