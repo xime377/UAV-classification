@@ -40,7 +40,7 @@ object.features=function(segments_r,    #Segments in raster format
       
       for (t in 1:length(stat.methods)){
         stat=zonal(image,segments_r, fun=stat.methods[t])
-	if((nrow(stat)!=nrow(variables))==T){
+        if((nrow(stat)!=nrow(variables))==T){
           stat= stat[-nrow(stat),]  #Se elimina la última fila que contiene NaN
         }
         variables=cbind(variables,stat[,2])
@@ -59,61 +59,61 @@ object.features=function(segments_r,    #Segments in raster format
       print("===r.texture FIN")
       for (t in 1:length(text.methods)){
         print("Segundo for t: ",t)
-	if(text.methods[t]=="sv"){
-         image=raster(readRAST(paste0("text_",toupper(text.methods[t]))))
+        if(text.methods[t]=="sv"){
+          image=raster(readRAST(paste0("text_",toupper(text.methods[t]))))
         }else{
-	 image=raster(readRAST(paste0("text_",capitalize(text.methods[t]))))
+          image=raster(readRAST(paste0("text_",capitalize(text.methods[t]))))
         }
         texture.images[[i]]=image
         names(texture.images[[i]])=paste0(text.methods[t],"_",text.rasters[i])  
         for (q in 1:length(text.stats)){
           print("Tercer for q: ",q)
-	  stat=zonal(image,segments_r,fun=text.stats[q])        
+          stat=zonal(image,segments_r,fun=text.stats[q])        
           if((nrow(stat)!=nrow(variables))==T){
             print("Dentro de if: ")
             stat= stat[-nrow(stat),]  #Se elimina la ultima fila que contiene NaN
-            }
-            variables=cbind(variables,stat[,2])
-            names(variables)[dim(variables)[2]]=paste0(text.stats[q],"_",text.methods[t],"_",text.rasters[i])
           }
+          variables=cbind(variables,stat[,2])
+          names(variables)[dim(variables)[2]]=paste0(text.stats[q],"_",text.methods[t],"_",text.rasters[i])
         }
       }
     }
-    print("##########SHAPE")
-    ###############SHAPE
-    if (shape==T){
-      ##SHAPE
-      #add fields to shape
-      area=cbind(as.data.frame(segments_v),area=gArea(segments_v, byid=TRUE))
-      area=area[order(area$value),]
-      variables=cbind(variables,area=area$area)
-      
-      length=cbind(as.data.frame(segments_v),length=gLength(segments_v, byid=TRUE))
-      length=length[order(length$value),]
-      variables=cbind(variables,length=length$length)
-      
-      variables["compactness"]=variables["length"]/(2*sqrt(pi*variables["area"]))
-      variables["fd"]=2*(log(variables["length"])/log(variables["area"]))
-    }
-    print("##########GENERATE OUTPUT")
-    ################GENERATE OUTPUT
-    size=dim(variables)[2]
-    if (rasters.output==TRUE) {
-      feature.images=list()
-      for (i in 2:size){
-        feature.images[[i-1]]=subs(segments_r,variables,by="zone",
-                                   which=names(variables[i]))
-      }
-      names(feature.images)=names(variables)[2:dim(variables)[2]]
-    } 
+  }
+  print("##########SHAPE")
+  ###############SHAPE
+  if (shape==T){
+    ##SHAPE
+    #add fields to shape
+    area=cbind(as.data.frame(segments_v),area=gArea(segments_v, byid=TRUE))
+    area=area[order(area$value),]
+    variables=cbind(variables,area=area$area)
     
-    if (rasters.output==T){
-      return(list(features=variables,feature.images=feature.images,texture.images=texture.images))
-    } else{
-      return(list(features=variables))
+    length=cbind(as.data.frame(segments_v),length=gLength(segments_v, byid=TRUE))
+    length=length[order(length$value),]
+    variables=cbind(variables,length=length$length)
+    
+    variables["compactness"]=variables["length"]/(2*sqrt(pi*variables["area"]))
+    variables["fd"]=2*(log(variables["length"])/log(variables["area"]))
+  }
+  print("##########GENERATE OUTPUT")
+  ################GENERATE OUTPUT
+  size=dim(variables)[2]
+  if (rasters.output==TRUE) {
+    feature.images=list()
+    for (i in 2:size){
+      feature.images[[i-1]]=subs(segments_r,variables,by="zone",
+                                 which=names(variables[i]))
     }
+    names(feature.images)=names(variables)[2:dim(variables)[2]]
   } 
+  
+  if (rasters.output==T){
+    return(list(features=variables,feature.images=feature.images,texture.images=texture.images))
+  } else{
+    return(list(features=variables))
+  }
+} 
 
-  
-  
-  
+
+
+

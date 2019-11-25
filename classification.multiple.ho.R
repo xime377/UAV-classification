@@ -1,15 +1,15 @@
 ######## Function to perform multiple classification algorithms using caret ######
 
 classification.multiple.ho <- function(data,       #dataset
-                              train.ind,
-                              fmla,       #formula
-                              k,          #number of folds
-                              times,      #number of resamples
-                              methods,    #chaclassifier,
-                              tuneLength, #number of parameters to test for training the model
-                              print.report, #True or False
-                              output.name)
-  {
+                                       train.ind,
+                                       fmla,       #formula
+                                       k,          #number of folds
+                                       times,      #number of resamples
+                                       methods,    #chaclassifier,
+                                       tuneLength, #number of parameters to test for training the model
+                                       print.report, #True or False
+                                       output.name)
+{
   library(caret)
   library(knitr)
   library(ProjectTemplate)
@@ -28,11 +28,11 @@ classification.multiple.ho <- function(data,       #dataset
   models.ho=list()
   for (i in 1:length(methods)){
     models.ho[[i]] <- train(fmla,train,method=methods[i],
-                         trControl=MyControl.ho,tuneLength=tuneLength) #with cross-validation
+                            trControl=MyControl.ho,tuneLength=tuneLength) #with cross-validation
   }
   
   names(models.ho)=methods
-
+  
   
   ########## OVERVIEW OF RESULTS
   #######hold out
@@ -62,8 +62,8 @@ classification.multiple.ho <- function(data,       #dataset
     subDir <- output.name
     
     dir.create(file.path(mainDir, subDir))
-   
-    knit("./lib/report_classification_ho_multiple.Rmd",output=paste0(file.path(
+    
+    knit("../lib/report_classification_ho_multiple.Rmd",output=paste0(file.path(
       mainDir, subDir),"/report_ho"),envir=new.env())
     knit2html(paste0(file.path(mainDir, subDir),"/report_ho"))
     file.rename("report_ho.html", paste0(file.path(mainDir, subDir),"/report_ho.html"))
@@ -72,9 +72,9 @@ classification.multiple.ho <- function(data,       #dataset
   }
   
   results.ho=list(conf.mat=conf.mat.ho,models=models.ho,fmla=fmla,times=times,k=k,
-              data=data,results=results)
+                  data=data,results=results)
   save(results.ho,file=paste0(file.path(mainDir, subDir),"/results_ho.Rdata"))
   
   return(results.ho)
-       
+  
 }
