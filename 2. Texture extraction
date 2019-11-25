@@ -2,51 +2,51 @@
 #
 #
 #This script extracts textural information from each segment from the image to add more information for the OBIA
-#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.gob.pe
 #
 #
 
 ###SET WD
-#setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
-
+#setwd("/home/xtagle/UAV/Results/") #Linux Manati
+#setwd("G:/My Drive/Monan/RPAs/Misiones/Results/") #Windows Xime Pc
 
 ###LOAD LIBRARIES
 library(raster)
-library(maptools)
 library(rgeos)
 library(rgrass7)
-library(spgrass7)
 library(RCurl)
-library(sf)
-library(Hmisc)
+#library(sf)
+#library(Hmisc)
 library(rgdal)
 
 ###LOAD FUNCTIONS
+#local
 source("./lib/load.to.grass.R")
 source("./lib/make.group.grass.R")
 source("./lib/object.features.R")
 source("./lib/polygonizeR.R")
+#from Github
+#script1 <- getURL("https://raw.githubusercontent.com/xime377/UAV-classification/master/load.to.grass.R", ssl.verifypeer = F)
+#eval(parse(text = script1))
 
 ####LOAD IMAGE
-image.path="./1_Clip/JH_1.tif"
+image.path="./JEN14/1_Clip/JEN-14_3.tif"
 image=stack(image.path)
-plotRGB(image)
-
+#plotRGB(image)
 
 ####LOAD SEGMENTS
-segments_v<-readOGR("./2_Segmentation/segments_JH_1_5001.shp")
-plot(segments_v, add=T)
+segments_v<-readOGR("./JEN14/2_Segmentation/segments_JEN14_5005.shp")
+#plot(segments_v, add=T)
 
-
-segment_r.path=("./2_Segmentation/segments_JH_1_5001.tif")
+segment_r.path=("./JEN14/2_Segmentation/segments_JEN14_5005.tif")
 segments_r=raster(segment_r.path)
-plot(segments_r)
+#plot(segments_r)
+#summary(segments_r)
 
 
 ###INITIATE GRASS-R CONNECTION
 initGRASS("C:/Program Files/GRASS GIS 7.2.2", tempdir(), override=TRUE) #path to GRASS
-
+#initGRASS("/opt/shared/grass-7.2.2/grass-7.2.2", home=tempdir(), override=TRUE) #path to GRASS Linux cluster
 
 #LOAD IMAGE TO GRASS
 load.to.grass(image.path,"RGB")
@@ -54,12 +54,12 @@ load.to.grass(image.path,"RGB")
 
 #SET REGION PARAMETER TO MATCH RGB
 execGRASS("g.region", parameters= list(raster="RGB.red"))
-execGRASS("g.region",flags="p") #check
+execGRASS("g.region", flags="p") #check
 
 
 #MAKE GROUP 
 make.group.grass(c("RGB.red","RGB.green","RGB.blue"),"group-1")
-
+#make.group.grass(c("RGB.1","RGB.2","RGB.3"),"group-1")
 
 ##CALCULATE OBJECT FEATURES                     
 features=object.features(segments_r,    #Segments in raster format
@@ -67,14 +67,14 @@ features=object.features(segments_r,    #Segments in raster format
                          statistics=T,    #Logical: If ==TRUE the statistics listed in stat.methods are calculated
                          stat.rasters=c("RGB.red","RGB.blue","RGB.green"),  #Character vector of the grass-names of the rasters for which the
                          #statistics listed in stat.methods are calculated. 
-                         stat.methods=c("mean"),  #Options: mean,sd,max,min,median ...
+                         stat.methods=c("mean","sd","median","max","min"),  #Options: mean,sd,max,min,median ...
                          texture=T,       #Logical: If ==TRUE the texture parameters listed in text.methods are calculated
                          text.rasters=c("RGB.red","RGB.blue","RGB.green"),  #Character vector of the grass-names of the rasters for which the 
                          #texture parameters listed in text.methods are calculated
-                         text.methods=c("entr"),  #Options: asm, contrast, corr, var, idm, sa, se, sv, entr, dv, de, moc1, moc2
+                         text.methods=c("entr","sv"),  #Options: asm, contrast, corr, var, idm, sa, se, sv, entr, dv, de, moc1, moc2
                          #See  http://grass.osgeo.org/grass70/manuals/r.texture.html for more info
                          text.window=3,   #The size of moving window (odd and >= 3)
-                         text.stats=c("mean"),    #How should the texture (which is pixel-based) Options: mean,sd,max,min,median ...
+                         text.stats=c("mean","sd"),    #How should the texture (which is pixel-based) Options: mean,sd,max,min,median ...
                          shape=T,         #Logical: If ==TRUE shape parameters are calculated
                          rasters.output=T, #Logical: If ==TRUE raster outputs are created in the return
                          texture.output=T #Logical: If ==TRUE raster outputs are created for the original
@@ -83,10 +83,10 @@ features=object.features(segments_r,    #Segments in raster format
 
 #EXPORT RASTER FILES
 for (i in 1:length(features[[2]])){
-  writeRaster(features[[2]][[i]],paste0("./3_Texture_ext/text_JH_1_5001",names(features[[2]])[i],".tif"),datatype="FLT4S")
+  writeRaster(features[[2]][[i]],paste0("./JEN14/3_Texture_ext/text_JEN14_5005",names(features[[2]])[i],".tif"),datatype="FLT4S")
 }
 
 #EXPORT VECTOR FILES
-#for (i in 1:length(features[[2]])){
-#  gdal_polygonizeR(features[[2]][[i]], paste0("./3_Texture_ext/text_JH_1_5001", names(features[[2]])[i]))
-#}
+for (i in 1:length(features[[2]])){
+  gdal_polygonizeR(features[[2]][[i]], paste0("./JEN14/3_Texture_ext/text_JEN14_5005", names(features[[2]])[i]))
+}
