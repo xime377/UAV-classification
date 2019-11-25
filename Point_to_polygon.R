@@ -3,7 +3,7 @@
 #' @param pointsP Data frame with Vertex, Latitude, Longitude and Altitude (From ForestPlots)
 #'
 #' @return sf Polygon 
-#' @export
+
 Point.to.poly<-function(pointsP){
   
   P.matrix <- as.matrix(pointsP@coords[,1:2]) #convert it to a matrix and subsets only the coordinates
