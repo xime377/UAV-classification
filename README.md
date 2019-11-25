@@ -8,7 +8,7 @@ Most of the process is run in R but for some tasks GRASS GIS is required. Before
 Steps:
 ------
 
-In case of the need to crop the UAV image use the following scripts:
+##### In case of the need to crop the UAV image use the following scripts:
 
 0.1. Point_to_poly Script to create a polygon that will define the area of subset
 
@@ -16,9 +16,9 @@ In case of the need to crop the UAV image use the following scripts:
 
 
 
-In case of having very high resolution mosaics and working with big crowns, 5cm resolution is enough: 
+##### In case of having very high resolution mosaics and working with big crowns, 5cm resolution is enough: 
 
-0.3.Aggregating.R Script to reduce the mosaic spatial resolution 
+0.3. Aggregating.R Script to reduce the mosaic spatial resolution 
 
 
 
