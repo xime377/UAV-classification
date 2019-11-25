@@ -5,13 +5,14 @@ Scripts for UAV classification. This workflow was designed to detect and quantif
 
 Most of the process is run in R but for some tasks GRASS GIS is required. Before start running the scripts, please check if GRASS GIS is installed in your PC or download it from here (https://grass.osgeo.org/download/software/ms-windows/).
 
-Steps:
+###Steps:
 
 In case of the need to crop the UAV image use the following scripts:
 
 0.1. Point_to_poly Script to create a polygon that will define the area of subset
 
 0.2. Clipping.R Script to subset de image to an area of interest using GDAL
+
 
 
 In case of having very high resolution mosaics and working with big crowns, 5cm resolution is enough: 
@@ -30,7 +31,7 @@ To start the process use the following scripts:
 11.Count_palms.R Script to 
 
 
-Additional Scripts:
+#####Additional Scripts:
 
 0. List_scripts.R Script to list all the scripts related to one task, one per mosaic, in order to run them in a batch process
 0.4 Plot_mosaics.R Script to plot the mosaics and save them as images
