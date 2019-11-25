@@ -15,7 +15,6 @@ In case of the need to crop the UAV image use the following scripts:
 0.2. Clipping.R Script to subset de image to an area of interest using GDAL
 
 
-
 In case of having very high resolution mosaics and working with big crowns, 5cm resolution is enough: 
 
 0.3.Aggregating.R Script to reduce the mosaic spatial resolution 
@@ -23,13 +22,13 @@ In case of having very high resolution mosaics and working with big crowns, 5cm 
 
 ##### To start the process use the following scripts:
 
-..1. Segmentation.R Script to segment the image using GRASS GIS
-..2. Texture extraction.R Script to extract information from each segment of the image
-..3. Canopy_Height.R Script to obtain the canopy height by subtracting the DTM from the DSM
-..4. Layer_stacking.R Script to combine all the layers that will be used for the classification
-..7. Training_set.R Script to extract the information for training and validating the classification
-..8. Classification.R Script with the classification methods and accuracy assessment
-..11.Count_palms.R Script to 
+.1. Segmentation.R Script to segment the image using GRASS GIS
+.2. Texture extraction.R Script to extract information from each segment of the image
+.3. Canopy_Height.R Script to obtain the canopy height by subtracting the DTM from the DSM
+.4. Layer_stacking.R Script to combine all the layers that will be used for the classification
+.7. Training_set.R Script to extract the information for training and validating the classification
+.8. Classification.R Script with the classification methods and accuracy assessment
+.11.Count_palms.R Script to 
 
 
 ##### Additional Scripts:
