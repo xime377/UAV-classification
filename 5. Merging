@@ -1,4 +1,12 @@
-###Set dir
+############################MERGE DIFFERENT SHAPEFILES##################################
+#
+#
+#This script merges several polygon shapefile from coordinates points
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.gob.pe
+#
+#
+
+###SET WORKING DIRECTORY
 setwd("C:/output/superpixel/Tiling/ARAMACHAY/4000")
 
 ###LOAD LIBRARIES
@@ -18,7 +26,7 @@ ss <- system.time(do.call(bind, s))
 ss
 plot(coordinates(ss))#a quick view of the center points of each segment
 # Write and Export as a shapefile 
-system.time(shapefile(ss, "C:/output/superpixel/Tiling/ARAMACHAY/4000/segments_complete.shp"))
+system.time(shapefile(ss, "./ARAMACHAY/4000/segments_complete.shp"))
 
 
 
