@@ -37,8 +37,11 @@ Steps:
 ##### Additional Scripts:
 
 0. List_scripts.R Script to list all the scripts related to one task, one per mosaic, in order to run them in a batch process
+
 0.4. Plot_mosaics.R Script to plot the mosaics and save them as images
+
 0.5. Stats_plots.R Script to calculate the statistics of the RAINFOR plots (ground data)
+
 5. Join_gps_forestplot.R Script to make a join between the GPS data and the foresplot info
 6. Count_species.R Script that counts the number of individuals per palm tree species from the forestplots database per RAINFOR plot
 9. Model_comparison.R Script to compare the results of the different classification techniques used
