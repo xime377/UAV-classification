@@ -2,7 +2,7 @@
 #
 #
 #This script subsets an image using a polygon shapefile
-#Any questions can be asked to Ximena Tagle: xtagle@iiap.org.pe
+#Any questions can be asked to Ximena Tagle: xtagle@iiap.gob.pe
 #
 #
 
@@ -10,11 +10,10 @@
 ###SET Working Directory 
 
 #setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct") #Windows
+setwd("G:/My Drive/Monan/RPAs/Misiones/Results/") #Windows
 
 
 ###LOAD LIBRARIES
-#library(RCurl)
 library(raster)
 library(gdalUtils)
 library(rgrass7)
@@ -52,3 +51,7 @@ Clip_DTM<-gdalwarp(srcfile= T.path, dstfile = "./1_Clip/JH_1_DTM.tif", ot= 'Floa
 
 ###VISUALIZE
 plotRGB(Clip)
+
+####LOAD PLOT LIMITS
+#plotBorder<-readOGR(dsn="../Plan/JEN", layer="JEN-14")
+#plot(plotBorder, pch=1, cex=4, col="white", add=T)
