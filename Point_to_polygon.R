@@ -2,7 +2,7 @@
 #'
 #' @param pointsP Data frame with Vertex, Latitude, Longitude and Altitude (From ForestPlots)
 #'
-#' @return sf Polygon 
+##' @return sf Polygon 
 #'
 
 Point.to.poly<-function(pointsP){
