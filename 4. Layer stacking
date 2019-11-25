@@ -1,20 +1,23 @@
 ############################LAYER STACKING##################################
 #
 #
-#This script compiles the information that will be used in the OBIA classification
+#This script creates a layer stack with all the inputs for the classification
 #Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
 #
 #
-###SET WD
-#setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
+
+
+
+###SET WDIR
+#setwd("/home/xtagle/UAV/Results/JEN14") #Linux Manati
+setwd("G:/My Drive/Monan/RPAs/Misiones/Results/JEN14") #Windows Xime Pc
 
 ###LOAD LIBRARIES
 library(raster)
 library(maptools)
 library(rgdal)
 
-###Load rasters
+###LOAD RASTERS
 #texture data
 texture_data<-list.files(path=("./3_Texture_ext/"), (pattern="text.*.tif$"), full.names=T)
 num_layer<-length(texture_data)
@@ -23,12 +26,19 @@ num_layer
 #Canopy height
 CH<-raster("./4_Height/JH_1_canopyH.tif") #if CH is not available, DSM can be used too
 
+###CHECK IF ALL THE LAYERS HAVE THE SAME CHARACTERISTICS FOR THE STACKING
+compareRaster(texture_data,CH)
 
-#Stack all the layers
+#match all the extent in case they are different
+projection(texture_data)<-"+proj=utm +zone=18 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
+texture_data<- projectRaster(texture_data, CH)
+compareRaster(texture_data,CH)
+
+
+###STACK ALL THE LAYERS
 raster_stack<-stack(texture_data, CH)
-raster_stack<-stack(texture_data) #without CH
 
-#Export the stack
-writeRaster(raster_stack, filename="./6_Classification/layers_JH_1_5001", format="GTiff", overwrite=F)
+###EXPORT THE STACK
+writeRaster(raster_stack, filename="./JEN14/6_Classification/layers_JEN14_50005", format="GTiff", overwrite=F)
 
 
