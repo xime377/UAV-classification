@@ -3,7 +3,7 @@ UAV-classification
 
 Scripts for UAV RGB image classification. This workflow was designed to detect and quantify palm trees in the rainforest. They were developed within the MonANPeru project. In case of usage, **please do not forget to cite this repository.** 
 
-Most of the process is run in R but for some tasks GRASS GIS is required. Before start running the scripts, please check if GRASS GIS is installed in your PC or download it from here (https://grass.osgeo.org/download/software/ms-windows/).
+Most of the process is run in R but for some tasks GRASS GIS is required. Before start running the scripts, please check if GRASS GIS is installed in your PC or download it from [here] (https://grass.osgeo.org/download/software/ms-windows/).
 
 Steps:
 ------
