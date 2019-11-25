@@ -2,48 +2,120 @@
 #
 #
 #This script assigns the textural information from each segment to each defined class
-#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.org.pe
+#Any questions or improvements can be emailed to Ximena Tagle: xtagle@iiap.gob.pe
 #
 #
+###SET WDIR
+setwd("G:/My Drive/Monan/RPAs/Misiones/Results/JEN14") #Windows Xime PC
 
-###SET WD
-#setwd("/home/xtagle/UAV/Results/") #Linux
-setwd("G:/My Drive/Monan/Taller_Oct/") #Windows
 
 ###LOAD LIBRARIES
 library(raster)
 library(maptools)
 library(rgdal)
-library(sp)
 library(dplyr)
 library(sf)
+#library(RCurl)
+
+
+###LOAD FUNCTIONS
+#Local dir
+source("../lib/strat_sampling.R")
+##or Github
+#script <- getURL("https://raw.githubusercontent.com/xime377/UAV-classification/master/strat_sampling.R", ssl.verifypeer = F)
+#eval(parse(text = script))
+
 
 ####LOAD LAYER_STACK
-raster_stack<-stack("./6_Classification/layers_JH_1_5001.tif")
-names(raster_stack)<-c("area",  "compactness",  "fd",   "length", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
-                       "mean_entr_RGB.red", "mean_RGB.blue", "mean_RGB.green",
-                       "mean_RGB.red") 
+raster_stack<-stack("./6_Classification/layers_JEN14_5005.tif")
+names(raster_stack)<-c("area",  "compactness",  "fd",   "length", "max_RGB.blue", "max_RGB.green",      
+                       "max_RGB.red", "mean_entr_RGB.blue",  "mean_entr_RGB.green",
+                       "mean_entr_RGB.red", "mean_RGB.blue",  "mean_RGB.green",
+                       "mean_RGB.red", "mean_sv_RGB.blue",  "mean_sv_RGB.green",  
+                       "mean_sv_RGB.red", "median_RGB.blue",  "median_RGB.green", 
+                       "median_RGB.red", "min_RGB.blue", "min_RGB.green", 
+                       "min_RGB.red",  "sd_entr_RGB.blue", "sd_entr_RGB.green",  
+                       "sd_entr_RGB.red",  "sd_RGB.blue", "sd_RGB.green",
+                       "sd_RGB.red", "sd_sv_RGB.blue", "sd_sv_RGB.green",    
+                       "sd_sv_RGB.red","CH")   
 
-###LOAD CLASS VECTOR
-##To use when you have GPS points with ground information
-#points<-readOGR("./5_Training/Training_classes.shp")
 
-##To use if the training data were obtained from another source (polygons digitized in QGIS for example)
+# ########################### When the GPS points with ground infor are ready to use ############################################################
+# ####LOAD GROUND DATA
+# GCPs<-readOGR(dsn="../GCPs/JEN/JEN14/SHP", layer="Palmeras_JEN14_2017_visi") #import as sp otherwise it is needed to get the coords
+# names(GCPs)
+# GCPs<- GCPs[,c(1,3,7,11:12,75)]
+# GCPs@coords<-GCPs@coords[,1:2]
+# head(GCPs)
+# plot(GCPs)
+# summary(GCPs)
+
+# ###EXTRACT LAYER STACK VALUES
+# Valuesd<- raster::extract(raster_stack, GCPs, df=T, method='simple', fun=mean, sp=T)
+# head(Valuesd@data)
+# names(Valuesd@data)
+
+###EXPORT VECTOR AS .shp
+#writeOGR(Valuesd,"./JEN14/5_Training", layer="Training_GCP", driver="ESRI Shapefile")
+
+#END
+
+############################### In case want to overlay the GCPs with the segments and edit them using QGIS #########################################
+###LOAD THE GROUND DATA
+GCPs<-st_read(dsn="../GCPs/JEN/JEN14/SHP", layer="Palmeras_JEN14_2017_visi") 
+#GCPs<-st_transform(GCPs, 32718) #change to UTM
+names(GCPs)
+
+#GCPs<-st_zm(GCPs) #Remove ZM dimensions
+
+###LOAD THE SEGMENTS
+segments<-st_read(dsn="./JEN14/2_Segmentation", layer="segments_JEN14_5001")
+segments<-st_set_crs(segments, 32718) #set projection
+
+###EXTRACT INFO SPECIES
+species<-st_join(segments,GCPs)
+plot(species[1])
+head(species)
+summary(species)
+
+###EXPORT VECTOR AS .shp and edit in QGIS
+st_write(species,"./JEN14/5_Training/", layer="segments_JEN14_5001_class", driver="ESRI Shapefile", update=T)
+
+#Continue with the next step after editing the sahpefile in QGIS (line 90)
+#######################################################################################################
+
+
+##########To use if the training data was obtained from another source (polygons digitized in QGIS for example)####################
 #Segments with the class assigned
-classes<-st_read(dsn="./5_Training", layer="segments_JH_1_5001_class") 
-Classes.F<- dplyr::filter(classes, complete.cases(label)) #SELECT ONLY SEGMENTS WITH A CLASS ASSIGNED
-head(Classes.F)
-Classes.F<- as(Classes.F, "Spatial") #convert to sp 
+classes<-readOGR(dsn="./JEN14/5_Training", layer="segments_JEN14_5001_class") #Load as sp, sf does not support spsample yet
+classes<-classes[,"Species"]
+names(classes)
+Classes.F<-classes[!is.na(classes$Species),]
 
-#Extract a point from each segment
-points<-spsample(Classes.F, n=101, type="stratified")#only extracts the coordinates
-points.df<-as.data.frame(points)
+head(Classes.F)
+summary(Classes.F)
+
+# ## The same procedure but using sf
+# classes<-st_read(dsn="./JEN14/5_Training", layer="segments_JEN14_5001_class") 
+# classes<-classes[,"Species"]
+# Classes.F<-classes[!is.na(classes$Species),]
+# head(Classes.F)
+# summary(Classes.F)
+# 
+# ## Extract a point from each segment
+# points<-st_sample(Classes.F, size=250, type="stratified")
+
+
+###EXTRACT POINTS PER CLASS
+points<-strat_samp(Classes.F, n=200, type="random")
 head(points)
+summary(points)
 plot(points, col="red")
 
 
-# #Polygons with training data bigger than segments
-# classes<-readOGR(dsn="./5_Training", layer="segments_JH_1_5001_class") 
+###################To use if the training data was obtained from another source (polygons digitized in QGIS for example)############################################################################################
+# #Polygons with training data larger than segments
+# classes<-readOGR(dsn="./5_Training", layer="segments_JEN14_5001_class") 
 # head(classes@data)
 # classes.df<-as.data.frame(classes)
 # head(classes.df)
@@ -57,49 +129,51 @@ plot(points, col="red")
 # points.df<-as.data.frame(points)
 # head(points)
 # plot(points)
+# 
+# ###SELECT ONLY SEGMENTS ASSIGNED
+# classess<- dplyr::filter(segments, complete.cases(label))
+
+##################################################################################################################
 
 ####LOAD IMAGE
-image.path="./1_Clip/JH_1.tif"
+image.path="./JEN14/1_Clip/JEN-14_3.tif"
 image=stack(image.path)
+
 
 ###VISUALIZE
 plotRGB(image)
-plot(Classes.F, bg="transparent", add=T)
-plot(points, col="red", bg="transparent", add=T)
+plot(points, bg="transparent",col="red", add=T)
+
 
 ###EXTRACT LAYER STACK VALUES
-Valuesd<- raster::extract(raster_stack, points, df=T, method='simple', fun=mean, sp=T)
+Valuesd<- raster::extract(raster_stack, points, df=T,method='simple', fun=mean, sp=T)
 head(Valuesd@data)
 names(Valuesd@data)
 
-###EXTRACT INFO CLASSSES
-class<-over(Valuesd, Classes.F)
-class.df<-as.data.frame(class)
-head(class)
 
-class.f<-cbind(points.df,class.df)
-head(class.f)
+###ADD INFO CLASSESS
+Valuesd<-st_as_sf(Valuesd)
+classesSf<-st_as_sf(Classes.F)
+head(classesSf)
 
-species<-cbind(class.f,Valuesd@data)
-head(species)
+training<-st_join(Valuesd,classesSf, join = st_covered_by)
+head(training)
+summary(training)
 
-coordinates(species) <- ~ x1+x2
-head(species@data)
 
 ###EXPORT VECTOR AS .shp
-writeOGR(species,"./5_Training", layer="training", driver="ESRI Shapefile")
+st_write(training,"./JEN14/5_Training", layer="training50005", driver="ESRI Shapefile", update=T)
 
 
-###EXPORT VECTOR AS A RASTER
-train<-rasterize(species, layer_stack, filename="./5_Training/training",
-                 na.rm=T, overwrite=T)
-
-
-###EXPORT DATA AS .csv
-class.df<-as.data.frame(species)
-plot(class.df)
-summary(class.df)
-write.table(class.df,file="./5_Training/Training_data.csv",quote=T,sep=",", na = "NA",
-            dec = ".", row.names = T,col.names = T)
-
+# ###EXPORT VECTOR AS A RASTER
+# train<-rasterize(species, layer_stack, filename="./5_Training",
+#                  na.rm=T, overwrite=T)
+# 
+# 
+# ###EXPORT DATA AS .csv
+# class.df<-as.data.frame(species)
+# plot(class.df)
+# summary(class.df)
+# write.table(class.df,file="./JEN14/Training.csv",quote=T,sep=",", na = "NA",
+#             dec = ".", row.names = T,col.names = T)
 
