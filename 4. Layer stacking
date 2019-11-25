@@ -6,8 +6,6 @@
 #
 #
 
-
-
 ###SET WDIR
 #setwd("/home/xtagle/UAV/Results/JEN14") #Linux Manati
 setwd("G:/My Drive/Monan/RPAs/Misiones/Results/JEN14") #Windows Xime Pc
