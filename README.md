@@ -30,7 +30,7 @@ Steps:
 4. Layer_stacking.R Script to combine all the layers that will be used for the classification
 7. Training_set.R Script to extract the information for training and validating the classification
 8. Classification.R Script with the classification methods and accuracy assessment
-11. Count_palms.R Script to 
+11. Count_palms.R Script to count the palms detected in the UAV mosaic
 
 
 
