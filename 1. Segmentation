@@ -68,7 +68,7 @@ segments<-segmentation.grass(group="group-1",ext=NA,min.size=50,threshold=0.05) 
 
 ##EXPORT SEGMENTS
 execGRASS("r.out.gdal", parameters=list(input="segments_r", output="./2_Segmentation/segments_JEN14_50005.tif", type="Float64"))
-execGRASS("v.out.ogr", parameters=list(input="segments_v", type="area", output="./2_Segmentation/segments_JEN14_50005.shp"))
+execGRASS("v.out.ogr", parameters=list(input="segments_v", type="area", output="./2_Segmentation/segments_JEN14_50005.gpkg"))
 
 
 #END CONNECTION
